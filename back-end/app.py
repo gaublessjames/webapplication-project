@@ -12,6 +12,23 @@ from sqlalchemy import text
 # Load environment variables
 load_dotenv()
 
+def ensure_demo_users():
+    from models import db, User
+    import bcrypt
+    demo_users = [
+        {"email": "demo@cafefausse.com", "full_name": "Demo User", "role": "user"},
+        {"email": "admin@cafefausse.com", "full_name": "Admin User", "role": "admin"},
+    ]
+    password = "demo123456"
+    for user_info in demo_users:
+        user = User.query.filter_by(email=user_info["email"]).first()
+        if not user:
+            hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            user = User(email=user_info["email"], full_name=user_info["full_name"], role=user_info["role"])
+            user.password_hash = hashed.decode('utf-8')
+            db.session.add(user)
+    db.session.commit()
+
 def create_app():
     """Application factory pattern"""
     app = Flask(__name__)
@@ -28,6 +45,15 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(api_bp, url_prefix='/api')
+
+    # Ensure demo users exist (only in local/dev mode)
+    app.has_run_demo_setup = False
+    @app.before_request
+    def setup_demo_users():
+        if not app.has_run_demo_setup:
+            with app.app_context():
+                ensure_demo_users()
+            app.has_run_demo_setup = True
     
     # Health check endpoint
     @app.route('/health')
@@ -53,10 +79,16 @@ def create_app():
     
     @app.errorhandler(500)
     def internal_error(error):
-        return jsonify({'error': 'Internal server error'}), 500
+        # Return the real error message for debugging
+        import traceback
+        return jsonify({
+            'error': 'Internal server error',
+            'message': str(error),
+            'trace': traceback.format_exc()
+        }), 500
     
     return app
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=os.getenv('FLASK_ENV') == 'development', host='0.0.0.0', port=5000) 
+    app.run(debug=os.getenv('FLASK_ENV') == 'development', host='0.0.0.0', port=5001) 

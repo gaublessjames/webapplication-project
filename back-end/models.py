@@ -5,6 +5,31 @@ import uuid
 
 db = SQLAlchemy()
 
+class User(db.Model):
+    """User model for authentication and reservation tracing"""
+    __tablename__ = 'users'
+
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    full_name = db.Column(db.String(100))
+    phone = db.Column(db.String(20))
+    role = db.Column(db.String(20), default='user')  # user, admin
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    reservations = db.relationship('Reservation', backref='user', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'email': self.email,
+            'full_name': self.full_name,
+            'phone': self.phone,
+            'role': self.role,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
 class Reservation(db.Model):
     """Table reservation model"""
     __tablename__ = 'reservations'
@@ -20,6 +45,7 @@ class Reservation(db.Model):
     status = db.Column(db.String(20), default='pending')  # pending, confirmed, cancelled
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'), nullable=True)
     
     def to_dict(self):
         return {
@@ -32,7 +58,8 @@ class Reservation(db.Model):
             'party_size': self.party_size,
             'special_requests': self.special_requests,
             'status': self.status,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'user_id': str(self.user_id) if self.user_id else None
         }
 
 class NewsletterSubscriber(db.Model):
@@ -188,4 +215,50 @@ class Award(db.Model):
             'image_url': self.image_url,
             'is_featured': self.is_featured,
             'display_order': self.display_order
+        } 
+
+class Customer(db.Model):
+    """Customer model for reservations and newsletter"""
+    __tablename__ = 'customers'
+
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20), nullable=True)
+    newsletter_signup = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'email': self.email,
+            'name': self.name,
+            'phone': self.phone,
+            'newsletter_signup': self.newsletter_signup,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        } 
+
+class Profile(db.Model):
+    """Profile model for user profile data"""
+    __tablename__ = 'profiles'
+
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'), nullable=False)
+    full_name = db.Column(db.String(100), nullable=True)
+    phone = db.Column(db.String(20), nullable=True)
+    role = db.Column(db.String(20), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'user_id': str(self.user_id),
+            'full_name': self.full_name,
+            'phone': self.phone,
+            'role': self.role,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         } 

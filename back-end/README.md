@@ -118,6 +118,22 @@ The API will be available at `http://localhost:5000`
 - `GET /api/awards` - Get all awards
 - `POST /api/awards` - Create new award (admin)
 
+### Authentication (Local API Mode)
+- `POST /api/auth/register` - Register a new user (email, password, full_name)
+- `POST /api/auth/login` - Login with email and password
+- `GET /api/auth/user` - Get current user info (requires Authorization: Bearer <token>)
+
+### Customers
+- `POST /api/customers` - Create a new customer
+- `GET /api/customers?email=...` - Get customer by email
+- `PATCH /api/customers/<id>` - Update customer
+- `POST /api/customers/upsert` - Upsert customer (for newsletter signup)
+
+### Profiles
+- `POST /api/profiles` - Create a new profile
+- `GET /api/profiles?user_id=...` - Get profile by user ID
+- `PATCH /api/profiles/<id>` - Update profile
+
 ## API Usage Examples
 
 ### Create a Reservation
@@ -155,6 +171,56 @@ curl http://localhost:5000/api/menu/categories
 curl "http://localhost:5000/api/reservations/availability?date=2024-02-15&time=19:00"
 ```
 
+### Example: Register a User
+```bash
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user1@example.com",
+    "password": "password123",
+    "full_name": "User One"
+  }'
+```
+
+### Example: Login
+```bash
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user1@example.com",
+    "password": "password123"
+  }'
+```
+
+### Example: Get Current User
+```bash
+curl -X GET http://localhost:5000/api/auth/user \
+  -H "Authorization: Bearer <token>"
+```
+
+### Example: Upsert Customer (Newsletter Signup)
+```bash
+curl -X POST http://localhost:5000/api/customers/upsert \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "newsletter@example.com",
+    "name": "Newsletter User",
+    "newsletter_signup": true
+  }'
+```
+
+### Example: Create Profile
+```bash
+curl -X POST http://localhost:5000/api/profiles \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "<user_id>",
+    "full_name": "User Name",
+    "phone": "1234567890",
+    "role": "user"
+  }'
+```
+
 ## Database Schema
 
 ### Tables
@@ -184,11 +250,29 @@ python app.py
 ```
 
 ### Database Migrations
-```bash
-flask db init
-flask db migrate -m "Initial migration"
-flask db upgrade
-```
+
+This project uses Alembic (via Flask-Migrate) for database migrations. To ensure your database schema is up to date, always run the following commands after cloning or pulling the project:
+
+1. **Activate your virtual environment:**
+   ```bash
+   source venv/bin/activate
+   ```
+
+2. **Apply all migrations (creates all tables/columns):**
+   ```bash
+   flask db upgrade
+   ```
+
+If you make changes to the models (e.g., add a new table or column), create a new migration:
+
+3. **Create a new migration after model changes:**
+   ```bash
+   flask db revision -m "describe your change"
+   # Edit the generated migration file as needed
+   flask db upgrade
+   ```
+
+If you ever get errors about missing tables or columns, re-run the above migration commands to ensure your database is in sync with the models.
 
 ### Testing
 ```bash
@@ -243,3 +327,23 @@ This project is licensed under the MIT License.
 ## Support
 
 For support or questions, please contact the development team or create an issue in the repository. 
+
+## Local Development: Demo Credentials & Migrations
+
+1. **Run database migrations:**
+   ```sh
+   flask db upgrade
+   ```
+
+2. **Start your Flask app:**
+   ```sh
+   flask run
+   ```
+
+3. **Demo users will be created automatically on first request:**
+   - Customer: `demo@cafefausse.com` / `demo123456`
+   - Admin: `admin@cafefausse.com` / `demo123456`
+
+4. **Log in with these credentials on the frontend.**
+
+If you ever reset your database, just repeat the above steps. 

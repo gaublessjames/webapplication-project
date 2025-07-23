@@ -4,13 +4,30 @@ import re
 
 class ReservationSchema(Schema):
     """Schema for reservation requests"""
-    name = fields.Str(required=True, validate=validate.Length(min=1, max=100))
-    email = fields.Email(required=True)
-    phone = fields.Str(required=True, validate=validate.Length(min=10, max=20))
-    date = fields.Date(required=True)
-    time = fields.Time(required=True)
-    party_size = fields.Int(required=True, validate=validate.Range(min=1, max=20))
+    # Accept both front-end and back-end field names
+    name = fields.Str(required=False, validate=validate.Length(min=1, max=100))
+    email = fields.Email(required=False)
+    phone = fields.Str(required=False, validate=validate.Length(min=10, max=20))
+    date = fields.Date(required=False)
+    time = fields.Time(required=False)
+    party_size = fields.Int(required=False, validate=validate.Range(min=1, max=20))
     special_requests = fields.Str(validate=validate.Length(max=500))
+    user_id = fields.UUID(required=False, allow_none=True)
+    customer_id = fields.UUID(required=False, allow_none=True)
+    reservation_date = fields.Str(required=False)
+    reservation_time = fields.Str(required=False)
+    number_of_guests = fields.Int(required=False)
+
+    def load(self, data, *args, **kwargs):
+        # Map front-end fields to back-end fields if needed
+        mapped = dict(data)
+        if 'reservation_date' in mapped:
+            mapped['date'] = mapped['reservation_date']
+        if 'reservation_time' in mapped:
+            mapped['time'] = mapped['reservation_time']
+        if 'number_of_guests' in mapped:
+            mapped['party_size'] = mapped['number_of_guests']
+        return super().load(mapped, *args, **kwargs)
     
     def validate_date(self, value):
         """Ensure date is not in the past"""
@@ -23,6 +40,16 @@ class ReservationSchema(Schema):
         if value < time(11, 0) or value > time(22, 0):
             raise ValidationError("Reservation time must be between 11:00 AM and 10:00 PM")
         return value
+
+class UserSchema(Schema):
+    """Schema for user requests and responses"""
+    id = fields.UUID(dump_only=True)
+    email = fields.Email(required=True)
+    full_name = fields.Str(validate=validate.Length(max=100))
+    phone = fields.Str(validate=validate.Length(max=20))
+    role = fields.Str(validate=validate.OneOf(["user", "admin"]))
+    created_at = fields.DateTime(dump_only=True)
+    updated_at = fields.DateTime(dump_only=True)
 
 class NewsletterSchema(Schema):
     """Schema for newsletter subscription"""
@@ -78,6 +105,26 @@ class AwardSchema(Schema):
     image_url = fields.Url()
     is_featured = fields.Bool()
     display_order = fields.Int()
+
+class CustomerSchema(Schema):
+    """Schema for customer requests and responses"""
+    id = fields.UUID(dump_only=True)
+    email = fields.Email(required=True)
+    name = fields.Str(required=True, validate=validate.Length(max=100))
+    phone = fields.Str(validate=validate.Length(max=20))
+    newsletter_signup = fields.Bool()
+    created_at = fields.DateTime(dump_only=True)
+    updated_at = fields.DateTime(dump_only=True)
+
+class ProfileSchema(Schema):
+    """Schema for profile requests and responses"""
+    id = fields.UUID(dump_only=True)
+    user_id = fields.UUID(required=True)
+    full_name = fields.Str(validate=validate.Length(max=100))
+    phone = fields.Str(validate=validate.Length(max=20))
+    role = fields.Str(validate=validate.Length(max=20))
+    created_at = fields.DateTime(dump_only=True)
+    updated_at = fields.DateTime(dump_only=True)
 
 # Response schemas
 class ReservationResponseSchema(Schema):

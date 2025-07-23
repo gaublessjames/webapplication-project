@@ -24,7 +24,8 @@ def run_migration_command(command, description):
             shell=True,
             check=True,
             capture_output=True,
-            text=True
+            text=True,
+            cwd=os.path.dirname(os.path.abspath(__file__))
         )
         print(f"✅ {description} completed successfully")
         if result.stdout.strip():
@@ -43,6 +44,11 @@ def main():
     print("🗄️  Database Migration Runner")
     print("=" * 50)
     
+    # Get the path to the virtual environment's executables
+    python_executable = sys.executable
+    # venv_bin_dir = os.path.dirname(python_executable)
+    # flask_executable = os.path.join(venv_bin_dir, 'flask')
+
     # Check environment
     database_url = os.getenv('DATABASE_URL')
     if not database_url:
@@ -58,28 +64,28 @@ def main():
     # Step 1: Check current migration status
     print("\n📊 Checking current migration status...")
     status_success, status_output = run_migration_command(
-        "flask db current",
+        f"{python_executable} -m flask db current",
         "Checking current migration version"
     )
     
     if not status_success:
         # Try alternative approach
         status_success, status_output = run_migration_command(
-            "python -m flask db current",
+            f"{python_executable} -m flask db current",
             "Checking current migration version (alternative)"
         )
     
     # Step 2: Run migrations
     print("\n🚀 Running database migrations...")
     migration_success, migration_output = run_migration_command(
-        "flask db upgrade",
+        f"{python_executable} -m flask db upgrade",
         "Running database migrations"
     )
     
     if not migration_success:
         # Try alternative approach
         migration_success, migration_output = run_migration_command(
-            "python -m flask db upgrade",
+            f"{python_executable} -m flask db upgrade",
             "Running database migrations (alternative)"
         )
     
@@ -89,7 +95,7 @@ def main():
         # Step 3: Show final status
         print("\n📊 Final migration status:")
         final_success, final_output = run_migration_command(
-            "flask db current",
+            f"{python_executable} -m flask db current",
             "Checking final migration version"
         )
         
@@ -109,4 +115,4 @@ if __name__ == "__main__":
         sys.exit(0)
     except Exception as e:
         print(f"\n❌ Unexpected error during migration: {e}")
-        sys.exit(1) 
+        sys.exit(1)
