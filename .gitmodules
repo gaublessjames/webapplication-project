@@ -1,0 +1,3 @@
+[submodule "front-end"]
+	path = front-end
+	url = git@github.com:gaulomail/fausse-cafe-reservations-app.git
