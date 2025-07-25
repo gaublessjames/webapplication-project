@@ -63,6 +63,72 @@ import HeroBookingForm, { handleDownloadPDF } from "@/components/HeroBookingForm
 
 const ADMIN_EMAILS = ["admin@cafefausse.com"];
 
+// TypeScript interfaces for dashboard entities
+interface Reservation {
+  id: string;
+  date?: string;
+  reservation_date?: string;
+  time?: string;
+  reservation_time?: string;
+  party_size?: number;
+  number_of_guests?: number;
+  table_number?: string;
+  status?: string;
+  customers?: { name?: string; email?: string };
+  name?: string;
+  email?: string;
+}
+
+interface Testimonial {
+  id: string;
+  title: string;
+  comment: string;
+  rating: number;
+  customer_name: string;
+  is_approved: boolean;
+  created_at?: string;
+}
+
+interface Award {
+  id: string;
+  name: string;
+  description: string;
+  year: string;
+  category: string;
+  is_featured: boolean;
+  display_order: number;
+}
+
+interface MenuCategory {
+  id: string;
+  name: string;
+  description: string;
+  display_order: number;
+  is_active: boolean;
+  icon: string;
+}
+
+interface MenuItem {
+  id: string;
+  name: string;
+  description: string;
+  price: string | number;
+  category_id: string;
+  is_vegetarian: boolean;
+  is_gluten_free: boolean;
+  is_spicy: boolean;
+  is_active: boolean;
+}
+
+interface GalleryImage {
+  id: string;
+  url: string;
+  alt: string;
+  category: string;
+  display_order: string;
+  is_active: boolean;
+}
+
 export default function AdminDashboard() {
   const { user, loading, role, signOut } = useAuth();
   const { toast } = useToast();
@@ -72,95 +138,61 @@ export default function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Reservations
-  const [reservations, setReservations] = useState<any[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState({ date: '', status: '' });
-  const [editReservation, setEditReservation] = useState<any | null>(null);
+  const [editReservation, setEditReservation] = useState<Reservation | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState<Partial<Reservation> | null>(null);
   const [editLoading, setEditLoading] = useState(false);
   const [cancelLoadingId, setCancelLoadingId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalReservations, setTotalReservations] = useState(0);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [cancelTarget, setCancelTarget] = useState<any | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<Reservation | null>(null);
   const [cancelError, setCancelError] = useState("");
   
   // Testimonials
-  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [testimonialsLoading, setTestimonialsLoading] = useState(false);
   const [testimonialError, setTestimonialError] = useState("");
   const [showTestimonialModal, setShowTestimonialModal] = useState(false);
-  const [editingTestimonial, setEditingTestimonial] = useState<any | null>(null);
-  const [testimonialForm, setTestimonialForm] = useState<any>({ 
-    title: '', 
-    comment: '', 
-    rating: 5, 
-    customer_name: '', 
-    is_approved: false 
-  });
+  const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
+  const [testimonialForm, setTestimonialForm] = useState<Omit<Testimonial, 'id' | 'created_at'>>({ title: '', comment: '', rating: 5, customer_name: '', is_approved: false });
   
   // Awards
-  const [awards, setAwards] = useState<any[]>([]);
+  const [awards, setAwards] = useState<Award[]>([]);
   const [awardsLoading, setAwardsLoading] = useState(false);
   const [awardsError, setAwardsError] = useState("");
   const [showAwardModal, setShowAwardModal] = useState(false);
-  const [editingAward, setEditingAward] = useState<any | null>(null);
-  const [awardForm, setAwardForm] = useState<any>({ 
-    name: '', 
-    description: '', 
-    year: '', 
-    category: '', 
-    is_featured: false, 
-    display_order: 1 
-  });
+  const [editingAward, setEditingAward] = useState<Award | null>(null);
+  const [awardForm, setAwardForm] = useState<Omit<Award, 'id'>>({ name: '', description: '', year: '', category: '', is_featured: false, display_order: 1 });
   
   // Menu Categories
-  const [menuCategories, setMenuCategories] = useState<any[]>([]);
+  const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
   const [menuCategoriesLoading, setMenuCategoriesLoading] = useState(false);
   const [menuCategoriesError, setMenuCategoriesError] = useState("");
   const [showMenuCategoryModal, setShowMenuCategoryModal] = useState(false);
-  const [editingMenuCategory, setEditingMenuCategory] = useState<any | null>(null);
-  const [menuCategoryForm, setMenuCategoryForm] = useState<any>({ 
-    name: '', 
-    description: '', 
-    display_order: 1, 
-    is_active: true, 
-    icon: '' 
-  });
+  const [editingMenuCategory, setEditingMenuCategory] = useState<MenuCategory | null>(null);
+  const [menuCategoryForm, setMenuCategoryForm] = useState<Omit<MenuCategory, 'id'>>({ name: '', description: '', display_order: 1, is_active: true, icon: '' });
   
   // Menu Items
-  const [menuWithItems, setMenuWithItems] = useState<any[]>([]);
+  const [menuWithItems, setMenuWithItems] = useState<(MenuCategory & { items: MenuItem[] })[]>([]);
   const [menuItemsLoading, setMenuItemsLoading] = useState(false);
   const [menuItemsError, setMenuItemsError] = useState("");
   const [showMenuItemModal, setShowMenuItemModal] = useState(false);
-  const [editingMenuItem, setEditingMenuItem] = useState<any | null>(null);
-  const [menuItemForm, setMenuItemForm] = useState<any>({ 
-    name: '', 
-    description: '', 
-    price: '', 
-    category_id: '', 
-    is_vegetarian: false, 
-    is_gluten_free: false, 
-    is_spicy: false, 
-    is_active: true 
-  });
+  const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null);
+  const [menuItemForm, setMenuItemForm] = useState<Omit<MenuItem, 'id'>>({ name: '', description: '', price: '', category_id: '', is_vegetarian: false, is_gluten_free: false, is_spicy: false, is_active: true });
   
   // Gallery Images
-  const [galleryImages, setGalleryImages] = useState<any[]>([]);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [galleryLoading, setGalleryLoading] = useState(false);
   const [galleryError, setGalleryError] = useState("");
   const [showGalleryModal, setShowGalleryModal] = useState(false);
-  const [editingGalleryImage, setEditingGalleryImage] = useState<any | null>(null);
-  const [galleryForm, setGalleryForm] = useState<any>({ 
-    url: '', 
-    alt: '', 
-    category: '', 
-    display_order: 0, 
-    is_active: true 
-  });
+  const [editingGalleryImage, setEditingGalleryImage] = useState<GalleryImage | null>(null);
+  const [galleryForm, setGalleryForm] = useState<Omit<GalleryImage, 'id'>>({ url: '', alt: '', category: '', display_order: '0', is_active: true });
   const [uploadMethod, setUploadMethod] = useState<'url' | 'file'>('url');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -340,7 +372,7 @@ export default function AdminDashboard() {
   // Gallery handlers
   const handleAddGalleryImage = () => {
     setEditingGalleryImage(null);
-    setGalleryForm({ url: '', alt: '', category: '', display_order: 0, is_active: true });
+    setGalleryForm({ url: '', alt: '', category: '', display_order: '0', is_active: true });
     setSelectedFile(null);
     setUploadMethod('url');
     setShowGalleryModal(true);
@@ -367,7 +399,7 @@ export default function AdminDashboard() {
         url: galleryForm.url,
         alt: galleryForm.alt,
         category: galleryForm.category,
-        display_order: parseInt(galleryForm.display_order, 10) || 0,
+        display_order: Number(galleryForm.display_order) || 0,
         is_active: Boolean(galleryForm.is_active),
       };
       if (editingGalleryImage) {
@@ -379,7 +411,7 @@ export default function AdminDashboard() {
       }
       setShowGalleryModal(false);
       setEditingGalleryImage(null);
-      setGalleryForm({ url: '', alt: '', category: '', display_order: 0, is_active: true });
+      setGalleryForm({ url: '', alt: '', category: '', display_order: '0', is_active: true });
       setSelectedFile(null);
       toast({ title: 'Gallery image saved', description: 'Gallery image has been saved successfully.' });
     } catch (err: any) {
@@ -1424,7 +1456,7 @@ export default function AdminDashboard() {
                       id="display_order"
                       name="display_order"
                       type="number"
-                      value={galleryForm.display_order}
+                      value={String(galleryForm.display_order)}
                       onChange={handleGalleryFormChange}
                       placeholder="0"
                     />
@@ -1507,8 +1539,7 @@ export default function AdminDashboard() {
                         value={editForm.party_size || editForm.number_of_guests || ''}
                         onChange={(e) => setEditForm({ 
                           ...editForm, 
-                          party_size: e.target.value,
-                          number_of_guests: e.target.value 
+                          party_size: Number(e.target.value)
                         })}
                       />
                     </div>
