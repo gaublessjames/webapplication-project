@@ -10,7 +10,7 @@ def setup_env():
     
     # Remote PostgreSQL URL (using a free service)
     # This is a sample URL - you should replace it with your actual database URL
-    remote_postgres_url = "postgresql://cafe_fausse_user:your_password_here@ep-cool-forest-123456.us-east-1.aws.neon.tech/cafe_fausse?sslmode=require"
+    remote_postgres_url = "postgresql://postgres:Blessmore@12345#@localhost:5432/cafe_fausse"
     
     env_content = f"""# Flask Configuration
 FLASK_ENV=development

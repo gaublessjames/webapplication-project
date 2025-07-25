@@ -14,8 +14,10 @@ class User(db.Model):
     full_name = db.Column(db.String(100))
     phone = db.Column(db.String(20))
     role = db.Column(db.String(20), default='user')  # user, admin
+    password_hash = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=False)
 
     reservations = db.relationship('Reservation', backref='user', lazy=True)
 
@@ -27,7 +29,7 @@ class User(db.Model):
             'phone': self.phone,
             'role': self.role,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'is_active': self.is_active,
         }
 
 class Reservation(db.Model):
@@ -43,6 +45,7 @@ class Reservation(db.Model):
     party_size = db.Column(db.Integer, nullable=False)
     special_requests = db.Column(db.Text)
     status = db.Column(db.String(20), default='pending')  # pending, confirmed, cancelled
+    table_number = db.Column(db.Integer, nullable=True)  # Table number assigned to this reservation
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'), nullable=True)
@@ -58,6 +61,7 @@ class Reservation(db.Model):
             'party_size': self.party_size,
             'special_requests': self.special_requests,
             'status': self.status,
+            'table_number': self.table_number,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'user_id': str(self.user_id) if self.user_id else None
         }
@@ -91,6 +95,7 @@ class MenuCategory(db.Model):
     display_order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    icon = db.Column(db.String(10), default='🍽️')
     
     # Relationship
     items = db.relationship('MenuItem', backref='category', lazy=True, cascade='all, delete-orphan')
@@ -102,6 +107,7 @@ class MenuCategory(db.Model):
             'description': self.description,
             'display_order': self.display_order,
             'is_active': self.is_active,
+            'icon': self.icon,
             'items': [item.to_dict() for item in self.items if item.is_active]
         }
 
@@ -140,7 +146,7 @@ class Testimonial(db.Model):
     __tablename__ = 'testimonials'
     
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    customer_name = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
     rating = db.Column(db.Integer, nullable=False)  # 1-5 stars
     comment = db.Column(db.Text, nullable=False)
     is_featured = db.Column(db.Boolean, default=False)
@@ -150,7 +156,7 @@ class Testimonial(db.Model):
     def to_dict(self):
         return {
             'id': str(self.id),
-            'customer_name': self.customer_name,
+            'title': self.title,
             'rating': self.rating,
             'comment': self.comment,
             'is_featured': self.is_featured,
@@ -261,4 +267,27 @@ class Profile(db.Model):
             'role': self.role,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        } 
+
+class GalleryImage(db.Model):
+    """Gallery image model"""
+    __tablename__ = 'gallery_images'
+
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    url = db.Column(db.String(500), nullable=False)
+    alt = db.Column(db.String(255), nullable=False)
+    category = db.Column(db.String(100), nullable=True)
+    display_order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'url': self.url,
+            'alt': self.alt,
+            'category': self.category,
+            'display_order': self.display_order,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         } 

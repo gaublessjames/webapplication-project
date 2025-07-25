@@ -5,6 +5,30 @@ Database setup script for Café Fausse
 
 import os
 import sys
+from app import create_app
+from models import db, User
+import bcrypt
+
+app = create_app()
+
+with app.app_context():
+    demo_users = [
+        {"email": "demo@cafefausse.com", "full_name": "Demo User", "role": "user"},
+        {"email": "admin@cafefausse.com", "full_name": "Admin User", "role": "admin"},
+    ]
+    password = "demo123456"
+    for user_info in demo_users:
+        user = User.query.filter_by(email=user_info["email"]).first()
+        hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        if not user:
+            user = User(email=user_info["email"], full_name=user_info["full_name"], role=user_info["role"])
+            user.password_hash = hashed
+            db.session.add(user)
+        else:
+            user.password_hash = hashed
+    db.session.commit()
+    print("Demo users ensured with password hashes.")
+
 
 def setup_database():
     """Guide user through database setup"""

@@ -7,8 +7,8 @@ def init_database():
     app = create_app()
     
     with app.app_context():
-        # Create all tables
-        db.create_all()
+        # DO NOT CREATE TABLES HERE! Only insert data after migrations.
+        # db.create_all()  # <-- REMOVED
         
         # Add restaurant information
         restaurant_info = RestaurantInfo(
@@ -41,78 +41,85 @@ def init_database():
         if not existing_info:
             db.session.add(restaurant_info)
         
-        # Add menu categories
-        categories_data = [
-            {"name": "Appetizers", "description": "Start your culinary journey with our carefully crafted appetizers", "display_order": 1},
-            {"name": "Main Courses", "description": "Our signature dishes prepared with the finest ingredients", "display_order": 2},
-            {"name": "Desserts", "description": "Sweet endings to perfect your dining experience", "display_order": 3},
-            {"name": "Beverages", "description": "Fine wines, craft cocktails, and specialty drinks", "display_order": 4}
+        # Add or update menu categories
+        menu_categories_data = [
+            {"name": "Starters", "description": "Fresh beginnings", "display_order": 1, "is_active": True, "icon": "🥗"},
+            {"name": "Main Courses", "description": "Hearty & exquisite mains", "display_order": 2, "is_active": True, "icon": "🍽️"},
+            {"name": "Desserts", "description": "Sweet finishes", "display_order": 3, "is_active": True, "icon": "🍰"},
+            {"name": "Beverages", "description": "Wines, beer & more", "display_order": 4, "is_active": True, "icon": "🍷"}
         ]
+        for cat_data in menu_categories_data:
+            cat = MenuCategory.query.filter_by(name=cat_data["name"]).first()
+            if cat:
+                for k, v in cat_data.items():
+                    setattr(cat, k, v)
+            else:
+                cat = MenuCategory(**cat_data)
+                db.session.add(cat)
+        db.session.commit()
         
-        for cat_data in categories_data:
-            existing_cat = MenuCategory.query.filter_by(name=cat_data["name"]).first()
-            if not existing_cat:
-                category = MenuCategory(**cat_data)
-                db.session.add(category)
-                db.session.flush()  # Get the ID
-                
-                # Add menu items for each category
-                if cat_data["name"] == "Appetizers":
-                    items = [
-                        {"name": "Escargots de Bourgogne", "description": "Traditional Burgundy snails in garlic herb butter", "price": 18.00, "category_id": category.id, "is_vegetarian": False},
-                        {"name": "Soupe à l'Oignon", "description": "Classic French onion soup with melted Gruyère", "price": 14.00, "category_id": category.id, "is_vegetarian": True},
-                        {"name": "Salade Niçoise", "description": "Fresh tuna, olives, eggs, and vegetables", "price": 16.00, "category_id": category.id, "is_vegetarian": False}
-                    ]
-                elif cat_data["name"] == "Main Courses":
-                    items = [
-                        {"name": "Coq au Vin", "description": "Braised chicken in red wine with mushrooms and pearl onions", "price": 32.00, "category_id": category.id, "is_vegetarian": False},
-                        {"name": "Filet de Boeuf", "description": "8oz filet mignon with red wine reduction", "price": 45.00, "category_id": category.id, "is_vegetarian": False},
-                        {"name": "Ratatouille", "description": "Provençal vegetable stew with herbs de Provence", "price": 24.00, "category_id": category.id, "is_vegetarian": True, "is_gluten_free": True}
-                    ]
-                elif cat_data["name"] == "Desserts":
-                    items = [
-                        {"name": "Crème Brûlée", "description": "Classic vanilla custard with caramelized sugar", "price": 12.00, "category_id": category.id, "is_vegetarian": True},
-                        {"name": "Tarte Tatin", "description": "Upside-down caramelized apple tart", "price": 14.00, "category_id": category.id, "is_vegetarian": True},
-                        {"name": "Mousse au Chocolat", "description": "Rich dark chocolate mousse", "price": 13.00, "category_id": category.id, "is_vegetarian": True, "is_gluten_free": True}
-                    ]
-                elif cat_data["name"] == "Beverages":
-                    items = [
-                        {"name": "French 75", "description": "Gin, champagne, lemon juice, and sugar", "price": 16.00, "category_id": category.id},
-                        {"name": "Kir Royale", "description": "Champagne with crème de cassis", "price": 18.00, "category_id": category.id},
-                        {"name": "House Red Wine", "description": "Selection of French red wines", "price": 12.00, "category_id": category.id}
-                    ]
-                
-                for item_data in items:
-                    item = MenuItem(**item_data)
-                    db.session.add(item)
-        
-        # Add awards
+        # Add or update awards
         awards_data = [
-            {"name": "Best Fine Dining Restaurant", "description": "Awarded by Food & Wine Magazine", "year": 2023, "category": "Fine Dining", "is_featured": True, "display_order": 1},
-            {"name": "Chef of the Year", "description": "Chef Marie Dubois recognized for culinary excellence", "year": 2022, "category": "Chef Recognition", "is_featured": True, "display_order": 2},
-            {"name": "Wine Spectator Award", "description": "Excellence in wine service and selection", "year": 2021, "category": "Wine Service", "is_featured": False, "display_order": 3},
-            {"name": "Michelin Star", "description": "One-star Michelin rating for exceptional cuisine", "year": 2020, "category": "Michelin Guide", "is_featured": True, "display_order": 4}
+            {"name": "Culinary Excellence Award", "description": "Multiple culinary awards and recognition for outstanding service and innovation.", "year": 2022, "category": "General", "is_featured": True, "display_order": 1},
+            {"name": "Restaurant of the Year", "description": "Recognized for outstanding service and innovation.", "year": 2023, "category": "General", "is_featured": True, "display_order": 2},
+            {"name": "Best Fine Dining Experience", "description": "Best Fine Dining Experience by Foodie Magazine.", "year": 2023, "category": "Foodie Magazine", "is_featured": True, "display_order": 3}
         ]
-        
         for award_data in awards_data:
-            existing_award = Award.query.filter_by(name=award_data["name"], year=award_data["year"]).first()
-            if not existing_award:
+            award = Award.query.filter_by(name=award_data["name"], year=award_data["year"]).first()
+            if award:
+                for k, v in award_data.items():
+                    setattr(award, k, v)
+            else:
                 award = Award(**award_data)
                 db.session.add(award)
+        db.session.commit()
         
         # Add testimonials
-        testimonials_data = [
-            {"customer_name": "Sarah Johnson", "rating": 5, "comment": "Absolutely incredible dining experience! The Coq au Vin was perfection, and the service was impeccable. We'll definitely be back!", "is_featured": True, "is_approved": True},
-            {"customer_name": "Michael Chen", "rating": 5, "comment": "The best French cuisine I've had outside of Paris. The wine pairing suggestions were spot on, and the atmosphere is so romantic.", "is_featured": True, "is_approved": True},
-            {"customer_name": "Emily Rodriguez", "rating": 4, "comment": "Wonderful food and great service. The crème brûlée was divine! Highly recommend for special occasions.", "is_featured": False, "is_approved": True},
-            {"customer_name": "David Thompson", "rating": 5, "comment": "Chef Marie's attention to detail is remarkable. Every dish was a work of art. The tasting menu was an unforgettable experience.", "is_featured": True, "is_approved": True}
-        ]
+        # testimonials_data = [
+        #     {"customer_name": "Sarah Johnson", "rating": 5, "comment": "Absolutely incredible dining experience! The Coq au Vin was perfection, and the service was impeccable. We'll definitely be back!", "is_featured": True, "is_approved": True},
+        #     {"customer_name": "Michael Chen", "rating": 5, "comment": "The best French cuisine I've had outside of Paris. The wine pairing suggestions were spot on, and the atmosphere is so romantic.", "is_featured": True, "is_approved": True},
+        #     {"customer_name": "Emily Rodriguez", "rating": 4, "comment": "Wonderful food and great service. The crème brûlée was divine! Highly recommend for special occasions.", "is_featured": False, "is_approved": True},
+        #     {"customer_name": "David Thompson", "rating": 5, "comment": "Chef Marie's attention to detail is remarkable. Every dish was a work of art. The tasting menu was an unforgettable experience.", "is_featured": True, "is_approved": True}
+        # ]
+        # for testimonial_data in testimonials_data:
+        #     existing_testimonial = Testimonial.query.filter_by(customer_name=testimonial_data["customer_name"], comment=testimonial_data["comment"]).first()
+        #     if not existing_testimonial:
+        #         testimonial = Testimonial(**testimonial_data)
+        #         db.session.add(testimonial)
+        # db.session.commit()
         
-        for testimonial_data in testimonials_data:
-            existing_testimonial = Testimonial.query.filter_by(customer_name=testimonial_data["customer_name"], comment=testimonial_data["comment"]).first()
-            if not existing_testimonial:
-                testimonial = Testimonial(**testimonial_data)
-                db.session.add(testimonial)
+        # Add menu items for each category
+        menu_items_data = [
+            # Starters
+            {"name": "Bruschetta", "description": "Fresh tomatoes, basil, olive oil, and toasted baguette slices", "price": 8.50, "category": "Starters"},
+            {"name": "Caesar Salad", "description": "Crisp romaine with homemade Caesar dressing", "price": 9.00, "category": "Starters"},
+            # Main Courses
+            {"name": "Grilled Salmon", "description": "Served with lemon butter sauce and seasonal vegetables", "price": 22.00, "category": "Main Courses"},
+            {"name": "Ribeye Steak", "description": "12 oz prime cut with garlic mashed potatoes", "price": 28.00, "category": "Main Courses"},
+            {"name": "Vegetable Risotto", "description": "Creamy Arborio rice with wild mushrooms", "price": 18.00, "category": "Main Courses"},
+            # Desserts
+            {"name": "Tiramisu", "description": "Classic Italian dessert with mascarpone", "price": 7.50, "category": "Desserts"},
+            {"name": "Cheesecake", "description": "Creamy cheesecake with berry compote", "price": 7.00, "category": "Desserts"},
+            # Beverages
+            {"name": "Red Wine (Glass)", "description": "A selection of Italian reds", "price": 10.00, "category": "Beverages"},
+            {"name": "White Wine (Glass)", "description": "Crisp and refreshing", "price": 9.00, "category": "Beverages"},
+            {"name": "Craft Beer", "description": "Local artisan brews", "price": 6.00, "category": "Beverages"},
+            {"name": "Espresso", "description": "Strong and aromatic", "price": 3.00, "category": "Beverages"},
+        ]
+        for item_data in menu_items_data:
+            category = MenuCategory.query.filter_by(name=item_data["category"]).first()
+            if not category:
+                continue
+            existing_item = MenuItem.query.filter_by(name=item_data["name"], category_id=category.id).first()
+            if not existing_item:
+                item = MenuItem(
+                    name=item_data["name"],
+                    description=item_data["description"],
+                    price=item_data["price"],
+                    category_id=category.id
+                )
+                db.session.add(item)
+        db.session.commit()
         
         # Commit all changes
         db.session.commit()

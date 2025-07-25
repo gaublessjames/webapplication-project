@@ -67,14 +67,8 @@ def upgrade():
         sa.PrimaryKeyConstraint('id')
     )
 
-    # Always attempt to add user_id column to reservations if it does not exist
-    from sqlalchemy import inspect
-    inspector = inspect(bind)
-    columns = [col['name'] for col in inspector.get_columns('reservations')]
-    if 'user_id' not in columns:
-        op.add_column('reservations', sa.Column('user_id', sa.UUID(), nullable=True))
-        op.create_foreign_key('fk_reservations_user_id', 'reservations', 'users', ['user_id'], ['id'])
-    else:
+    # Always create the reservations table if it does not exist
+    if 'reservations' not in existing_tables:
         op.create_table('reservations',
             sa.Column('id', sa.UUID(), nullable=False),
             sa.Column('name', sa.String(length=100), nullable=False),
@@ -91,6 +85,7 @@ def upgrade():
             sa.ForeignKeyConstraint(['user_id'], ['users.id']),
             sa.PrimaryKeyConstraint('id')
         )
+    # Do not inspect or alter columns if the table does not exist
     if 'restaurant_info' not in existing_tables:
         op.create_table('restaurant_info',
             sa.Column('id', sa.UUID(), nullable=False),

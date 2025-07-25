@@ -17,6 +17,7 @@ class ReservationSchema(Schema):
     reservation_date = fields.Str(required=False)
     reservation_time = fields.Str(required=False)
     number_of_guests = fields.Int(required=False)
+    table_number = fields.Int(required=False, allow_none=True)
 
     def load(self, data, *args, **kwargs):
         # Map front-end fields to back-end fields if needed
@@ -50,6 +51,7 @@ class UserSchema(Schema):
     role = fields.Str(validate=validate.OneOf(["user", "admin"]))
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
+    is_active = fields.Bool(dump_only=True)
 
 class NewsletterSchema(Schema):
     """Schema for newsletter subscription"""
@@ -62,6 +64,7 @@ class MenuCategorySchema(Schema):
     description = fields.Str(validate=validate.Length(max=500))
     display_order = fields.Int()
     is_active = fields.Bool()
+    icon = fields.Str(validate=validate.Length(max=10))
 
 class MenuItemSchema(Schema):
     """Schema for menu items"""
@@ -77,7 +80,7 @@ class MenuItemSchema(Schema):
 
 class TestimonialSchema(Schema):
     """Schema for testimonials"""
-    customer_name = fields.Str(required=True, validate=validate.Length(min=1, max=100))
+    title = fields.Str(required=True, validate=validate.Length(min=1, max=100))
     rating = fields.Int(required=True, validate=validate.Range(min=1, max=5))
     comment = fields.Str(required=True, validate=validate.Length(min=10, max=1000))
     is_featured = fields.Bool()
@@ -126,6 +129,16 @@ class ProfileSchema(Schema):
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
 
+class GalleryImageSchema(Schema):
+    """Schema for gallery images"""
+    id = fields.UUID(dump_only=True)
+    url = fields.Str(required=True, validate=validate.Length(min=1, max=500))
+    alt = fields.Str(required=True, validate=validate.Length(min=1, max=255))
+    category = fields.Str(validate=validate.Length(max=100))
+    display_order = fields.Int()
+    is_active = fields.Bool()
+    created_at = fields.DateTime(dump_only=True)
+
 # Response schemas
 class ReservationResponseSchema(Schema):
     """Schema for reservation responses"""
@@ -138,6 +151,7 @@ class ReservationResponseSchema(Schema):
     party_size = fields.Int()
     special_requests = fields.Str()
     status = fields.Str()
+    table_number = fields.Int()
     created_at = fields.DateTime()
 
 class NewsletterResponseSchema(Schema):
@@ -173,7 +187,7 @@ class MenuItemResponseSchema(Schema):
 class TestimonialResponseSchema(Schema):
     """Schema for testimonial responses"""
     id = fields.UUID()
-    customer_name = fields.Str()
+    title = fields.Str()
     rating = fields.Int()
     comment = fields.Str()
     is_featured = fields.Bool()

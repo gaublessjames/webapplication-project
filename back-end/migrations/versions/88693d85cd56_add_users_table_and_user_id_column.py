@@ -7,6 +7,7 @@ Create Date: 2025-07-23 18:44:34.082610
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import inspect
 
 
 # revision identifiers, used by Alembic.
@@ -17,17 +18,7 @@ depends_on = None
 
 
 def upgrade():
-    # Create users table if it doesn't exist
-    op.create_table(
-        'users',
-        sa.Column('id', sa.UUID(), primary_key=True),
-        sa.Column('email', sa.String(120), unique=True, nullable=False),
-        sa.Column('full_name', sa.String(100)),
-        sa.Column('phone', sa.String(20)),
-        sa.Column('role', sa.String(20), server_default='user'),
-        sa.Column('created_at', sa.DateTime()),
-        sa.Column('updated_at', sa.DateTime())
-    )
+    # Remove users table creation (already created in initial migration)
     # Create customers table if it doesn't exist
     op.create_table(
         'customers',
@@ -51,9 +42,13 @@ def upgrade():
         sa.Column('updated_at', sa.DateTime())
     )
     # Add user_id column to reservations if it doesn't exist
-    with op.batch_alter_table('reservations') as batch_op:
-        batch_op.add_column(sa.Column('user_id', sa.UUID(), nullable=True))
-        batch_op.create_foreign_key('fk_reservations_user_id', 'users', ['user_id'], ['id'])
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    columns = [col['name'] for col in inspector.get_columns('reservations')]
+    if 'user_id' not in columns:
+        with op.batch_alter_table('reservations') as batch_op:
+            batch_op.add_column(sa.Column('user_id', sa.UUID(), nullable=True))
+            batch_op.create_foreign_key('fk_reservations_user_id', 'users', ['user_id'], ['id'])
 
 
 def downgrade():

@@ -231,6 +231,26 @@
       }
     },
     {
+      "name": "Login (Demo User)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"demo@cafefausse.com\",\n  \"password\": \"demo123456\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/auth/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "auth", "login"]
+        }
+      }
+    },
+    {
       "name": "Get Current User (Auth)",
       "request": {
         "method": "GET",
