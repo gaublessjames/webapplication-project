@@ -1,0 +1,119 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* World-class Design System with #dd524c variations */
+    --background: 0 0% 100%; /* Pure white background */
+    --foreground: 220 13% 18%; /* Rich dark gray text */
+    --card: 0 0% 100%; /* Pure white cards */
+    --card-foreground: 220 13% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 18%;
+    --primary: 4 60% 58%; /* Main color #dd524c */
+    --primary-foreground: 0 0% 100%; /* White on primary */
+    --secondary: 210 40% 98%; /* Light gray secondary */
+    --secondary-foreground: 220 13% 18%; /* Dark text on light gray */
+    --muted: 210 40% 98%; /* Light gray muted */
+    --muted-foreground: 215 16% 47%; /* Medium gray text */
+    --accent: 4 60% 58%; /* Primary accent */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%; /* Light gray border */
+    --input: 0 0% 100%;
+    --ring: 4 60% 58%; /* Primary focus ring */
+
+    --radius: 0.5rem;
+
+    /* Color Variations of #dd524c */
+    --primary-50: 4 95% 97%;
+    --primary-100: 4 89% 89%;
+    --primary-200: 4 84% 79%;
+    --primary-300: 4 77% 67%;
+    --primary-400: 4 70% 55%;
+    --primary-500: 4 60% 58%; /* Base #dd524c */
+    --primary-600: 4 71% 50%;
+    --primary-700: 4 75% 41%;
+    --primary-800: 4 76% 33%;
+    --primary-900: 4 74% 27%;
+    
+    /* Professional Gray Scale */
+    --gray-50: 210 40% 98%;
+    --gray-100: 210 40% 96%;
+    --gray-200: 214 32% 91%;
+    --gray-300: 213 27% 84%;
+    --gray-400: 215 20% 65%;
+    --gray-500: 215 16% 47%;
+    --gray-600: 215 19% 35%;
+    --gray-700: 215 25% 27%;
+    --gray-800: 217 33% 17%;
+    --gray-900: 222 84% 5%;
+    
+    /* Professional Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    /* Smooth Transitions */
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Sidebar tokens */
+    --sidebar-background: 255 255 255;
+    --sidebar-foreground: 31 41 55;
+    --sidebar-primary: 221 82 76;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 248 250 252;
+    --sidebar-accent-foreground: 31 41 55;
+    --sidebar-border: 226 232 240;
+    --sidebar-ring: 221 82 76;
+  }
+
+  .dark {
+    /* Dark mode - professional and clean */
+    --background: 15 23 42; /* Deep blue-gray background */
+    --foreground: 248 250 252; /* Light text */
+    --card: 30 41 59; /* Darker cards */
+    --card-foreground: 248 250 252;
+    --popover: 30 41 59;
+    --popover-foreground: 248 250 252;
+    --primary: 248 171 171; /* Lighter version in dark mode */
+    --primary-foreground: 15 23 42;
+    --secondary: 30 41 59; /* Dark secondary */
+    --secondary-foreground: 248 250 252;
+    --muted: 30 41 59;
+    --muted-foreground: 148 163 184;
+    --accent: 248 171 171; /* Lighter accent in dark mode */
+    --accent-foreground: 15 23 42;
+    --destructive: 239 68 68;
+    --destructive-foreground: 248 250 252;
+    --border: 51 65 85;
+    --input: 30 41 59;
+    --ring: 248 171 171;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+@layer components {
+  .mobile-menu-open {
+    @apply translate-x-0;
+  }
+}
