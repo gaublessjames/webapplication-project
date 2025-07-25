@@ -40,7 +40,7 @@ def create_app():
     
     # Initialize extensions
     db.init_app(app)
-    CORS(app)
+    CORS(app, supports_credentials=True, origins=["http://localhost:8080", "http://localhost:8081"])
     Migrate(app, db)
     
     # Register blueprints
