@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: cafe_fausse
+      POSTGRES_USER: cafe_fausse_user
+      POSTGRES_PASSWORD: cafe_fausse_pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    command: >
+      sh -c "
+        flask db upgrade &&
+        python setup_database.py &&
+        gunicorn -w 4 -b 0.0.0.0:5000 app:create_app()
+      "
+    environment:
+      FLASK_ENV: development
+      SECRET_KEY: cafe-fausse-secret-key-2024-dev
+      DEBUG: "True"
+      DATABASE_URL: postgresql://cafe_fausse_user:cafe_fausse_pass@db:5432/cafe_fausse
+    depends_on:
+      - db
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./back-end:/app
+
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+    environment:
+      VITE_LOCAL_API_URL: http://localhost:5001/api
+    ports:
+      - "8081:8081"
+    depends_on:
+      - backend
+    volumes:
+      - ./front-end:/app
+      - /app/node_modules # Ensures container uses its own node_modules
+
+# [Frontend service removed for local development]
+# To run the frontend dev server locally, use:
+#   cd front-end && npm install && npm run dev
+# The app will be available at http://localhost:8081
+# Make sure VITE_LOCAL_API_URL points to http://localhost:5001/api
+
+volumes:
+  postgres_data: 
