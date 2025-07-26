@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { ChefHat, Heart, Leaf, Award, Phone, MapPin, Clock, Star, Users, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 import restaurantHero from "@/assets/restaurant-hero.jpg";
+import Header from "@/components/Header";
+import Footer from "@/components/layout/Footer";
 
 const About = () => {
   const chefTeam = [
@@ -50,7 +52,7 @@ const About = () => {
     {
       year: "2010",
       title: "The Beginning",
-      description: "Chef Laurent and Isabella open Café Fausse with a vision to create an intimate fine dining experience"
+      description: "Founded by Chef Antonio Rossi and restaurateur Maria Lopez, Café Fausse opens its doors with a vision to blend traditional Italian flavors with modern culinary innovation"
     },
     {
       year: "2015",
@@ -68,42 +70,20 @@ const About = () => {
       description: "Pioneered farm-to-table delivery experiences during global challenges while maintaining excellence"
     },
     {
+      year: "2022",
+      title: "Culinary Excellence Award",
+      description: "Recognized for outstanding culinary excellence and commitment to unforgettable dining experiences"
+    },
+    {
       year: "2023",
-      title: "International Acclaim",
-      description: "Named among 'World's 50 Best Restaurants' and featured in Condé Nast Traveler"
+      title: "Restaurant of the Year",
+      description: "Named 'Restaurant of the Year' and featured in Condé Nast Traveler for exceptional service and locally sourced ingredients"
     }
   ];
 
   return (
     <div className="min-h-screen bg-white text-foreground">
-      {/* Navigation */}
-      <nav className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 relative z-50 sticky top-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-all duration-300 transform hover:scale-105">
-              Café Fausse
-            </Link>
-            
-            <div className="hidden md:flex items-center space-x-8">
-              <Link to="/" className="text-primary-600 hover:text-primary-700 transition-all duration-300 font-medium hover:bg-primary-50 px-3 py-2 rounded-lg">
-                Home
-              </Link>
-              <Link to="/menu" className="text-primary-600 hover:text-primary-700 transition-all duration-300 font-medium hover:bg-primary-50 px-3 py-2 rounded-lg">
-                Menu
-              </Link>
-              <Link to="/about" className="text-white font-semibold bg-primary-600 px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-300">
-                About
-              </Link>
-              <Link to="/gallery" className="text-primary-600 hover:text-primary-700 transition-all duration-300 font-medium hover:bg-primary-50 px-3 py-2 rounded-lg">
-                Gallery
-              </Link>
-              <Link to="/reservations" className="text-primary-600 hover:text-primary-700 transition-all duration-300 font-medium hover:bg-primary-50 px-3 py-2 rounded-lg">
-                Reservations
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Header />
 
       {/* Hero Section */}
       <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
@@ -174,33 +154,24 @@ const About = () => {
               Meet the visionaries behind Café Fausse, whose passion and leadership shape our story and guest experience.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-10">
-            {/* James Anih */}
+          <div className="grid md:grid-cols-2 gap-10">
+            {/* Antonio Rossi */}
             <div className="flex flex-col items-center bg-white/90 rounded-3xl shadow-xl border border-primary-100 p-10 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
               <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary-200 via-primary-100 to-white flex items-center justify-center mb-4 text-4xl text-primary-700 font-bold border-4 border-primary-300 shadow-lg">
-                J
+                A
               </div>
-              <h3 className="text-2xl font-bold text-primary-800 mb-1 tracking-tight">James Anih</h3>
-              <p className="text-primary-500 font-medium mb-2">Co-Owner</p>
-              <p className="text-gray-700 text-center text-base">James brings a wealth of business acumen and a deep love for hospitality, ensuring Café Fausse delivers excellence at every level.</p>
+              <h3 className="text-2xl font-bold text-primary-800 mb-1 tracking-tight">Chef Antonio Rossi</h3>
+              <p className="text-primary-500 font-medium mb-2">Executive Chef & Co-Founder</p>
+              <p className="text-gray-700 text-center text-base">Chef Antonio brings over 20 years of culinary expertise, specializing in traditional Italian cuisine with modern innovation. His passion for locally sourced ingredients and commitment to excellence drives our kitchen's success.</p>
             </div>
-            {/* Gaudencio Solivatore */}
+            {/* Maria Lopez */}
             <div className="flex flex-col items-center bg-white/90 rounded-3xl shadow-xl border border-primary-100 p-10 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
               <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary-200 via-primary-100 to-white flex items-center justify-center mb-4 text-4xl text-primary-700 font-bold border-4 border-primary-300 shadow-lg">
-                G
+                M
               </div>
-              <h3 className="text-2xl font-bold text-primary-800 mb-1 tracking-tight">Gaudencio Solivatore</h3>
-              <p className="text-primary-500 font-medium mb-2">Co-Owner</p>
-              <p className="text-gray-700 text-center text-base">Gaudencio’s vision and creative direction inspire the team to push boundaries and create memorable experiences for every guest.</p>
-            </div>
-            {/* Blessing Nkem Dumkwu */}
-            <div className="flex flex-col items-center bg-white/90 rounded-3xl shadow-xl border border-primary-100 p-10 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-              <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary-200 via-primary-100 to-white flex items-center justify-center mb-4 text-4xl text-primary-700 font-bold border-4 border-primary-300 shadow-lg">
-                B
-              </div>
-              <h3 className="text-2xl font-bold text-primary-800 mb-1 tracking-tight">Blessing Nkem Dumkwu</h3>
-              <p className="text-primary-500 font-medium mb-2">Co-Owner</p>
-              <p className="text-gray-700 text-center text-base">Blessing’s dedication to guest satisfaction and operational excellence ensures Café Fausse remains a leader in fine dining.</p>
+              <h3 className="text-2xl font-bold text-primary-800 mb-1 tracking-tight">Maria Lopez</h3>
+              <p className="text-primary-500 font-medium mb-2">Restaurateur & Co-Founder</p>
+              <p className="text-gray-700 text-center text-base">Maria's business acumen and dedication to exceptional service ensure that every guest experiences the perfect blend of hospitality and culinary artistry that defines Café Fausse.</p>
             </div>
           </div>
         </div>
@@ -280,68 +251,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            <div className="lg:col-span-2">
-              <h3 className="text-2xl md:text-3xl font-bold mb-4 text-primary-400">Café Fausse</h3>
-              <p className="text-gray-300 mb-6 max-w-md leading-relaxed">
-                Exceptional dining experiences since 2010. We blend traditional flavors with modern culinary innovation to create unforgettable moments.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4 text-primary-400">Quick Links</h4>
-              <div className="space-y-3">
-                <Link to="/menu" className="block text-gray-300 hover:text-primary-400 transition-colors">
-                  Menu
-                </Link>
-                <Link to="/reservations" className="block text-gray-300 hover:text-primary-400 transition-colors">
-                  Reservations
-                </Link>
-                <Link to="/gallery" className="block text-gray-300 hover:text-primary-400 transition-colors">
-                  Gallery
-                </Link>
-              </div>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4 text-primary-400">Contact Info</h4>
-              <div className="space-y-3">
-                <div className="flex items-center text-gray-300">
-                  <MapPin className="w-4 h-4 mr-3 text-primary-400" />
-                  <div>
-                    <p>123 Culinary Street</p>
-                    <p>Gourmet District, NY 10001</p>
-                  </div>
-                </div>
-                <div className="flex items-center text-gray-300">
-                  <Phone className="w-4 h-4 mr-3 text-primary-400" />
-                  <p>(202) 555-4567</p>
-                </div>
-                <div className="flex items-center text-gray-300">
-                  <Clock className="w-4 h-4 mr-3 text-primary-400" />
-                  <p>Mon-Sat: 5PM-11PM</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-gray-700 pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-              <p className="text-gray-400 text-sm text-center md:text-left">
-                © 2025 Café Fausse. All rights reserved.
-              </p>
-              <div className="flex flex-wrap justify-center md:justify-end gap-6">
-                <Link to="#" className="text-gray-400 hover:text-primary-400 text-sm transition-colors">
-                  Privacy Policy
-                </Link>
-                <Link to="#" className="text-gray-400 hover:text-primary-400 text-sm transition-colors">
-                  Terms of Service
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

@@ -10,7 +10,7 @@ def setup_env():
     
     # Remote PostgreSQL URL (using a free service)
     # This is a sample URL - you should replace it with your actual database URL
-    remote_postgres_url = "postgresql://postgres:Blessmore@12345#@localhost:5432/cafe_fausse"
+    remote_postgres_url = "postgresql://postgres:postgres@localhost:5432/cafe_fausse_2"
     
     env_content = f"""# Flask Configuration
 FLASK_ENV=development
@@ -50,7 +50,7 @@ RESTAURANT_WEBSITE=https://cafefausse.com
     print("   • Supabase: https://supabase.com")
     print("   • Railway: https://railway.app")
     print("\n📋 Example DATABASE_URL format:")
-    print("   postgresql://username:password@host:port/database?sslmode=require")
+    print("   postgresql://username:password@host:5432/cafe_fausse_2")
 
 if __name__ == "__main__":
     setup_env() 

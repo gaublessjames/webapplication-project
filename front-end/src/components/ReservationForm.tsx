@@ -73,7 +73,7 @@ const ReservationForm = () => {
     try {
       // First, create or get customer
       let customerId;
-      let customerRes = await getCustomerByEmail(data.email);
+      const customerRes = await getCustomerByEmail(data.email);
       if (customerRes && customerRes.customer) {
         customerId = customerRes.customer.id;
       } else {

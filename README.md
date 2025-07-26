@@ -1,245 +1,251 @@
-# Café Fausse Backend API
+# Café Fausse Restaurant Application
 
-A Flask-based REST API backend for the Café Fausse restaurant website. This backend handles table reservations, newsletter subscriptions, menu management, testimonials, and restaurant information.
+A full-stack restaurant management system for Café Fausse, featuring a React frontend and a modular Flask backend API. Supports reservations, menu management, testimonials, gallery, newsletter, and more.
 
-## Features
+---
 
-- **Table Reservations**: Complete reservation system with availability checking
-- **Newsletter Management**: Subscribe/unsubscribe functionality
-- **Menu Management**: Categories and items with dietary information
-- **Testimonials**: Customer reviews and ratings
-- **Restaurant Information**: Contact details, hours, and social media
-- **Awards**: Restaurant accolades and recognition
-- **Data Validation**: Comprehensive input validation using Marshmallow
-- **PostgreSQL Database**: Robust data persistence
-- **CORS Support**: Cross-origin resource sharing enabled
+## 🚦 Quick Start: Choose Your Setup
 
-## Tech Stack
+| Setup Method | Recommended For | Guide |
+|--------------|-----------------|-------|
+| **Docker**   | Easiest, fastest, no local dependencies | [DOCKER_README.md](DOCKER_README.md) |
+| **Manual**   | Customization, local dev, no Docker | See below |
 
-- **Framework**: Flask 3.0.0
-- **Database**: PostgreSQL with SQLAlchemy ORM
-- **Validation**: Marshmallow schemas
-- **Migration**: Flask-Migrate
-- **CORS**: Flask-CORS
+> **Note:** Both methods deliver the **same demo data, endpoints, and user experience**. Choose whichever fits your workflow.
 
-## Project Structure
+---
+
+## 📦 What You Get (Demo Data & Experience)
+- **Demo Users:** demo@cafefausse.com, admin@cafefausse.com, chef@cafefausse.com (all: demo123456)
+- **Menu:** 4 categories, 12 French dishes
+- **Gallery:** 12 high-quality images
+- **Testimonials:** 6 customer reviews
+- **Awards:** 3 restaurant awards
+- **Sample Data:** Customers, reservations, newsletter subscribers
+- **Consistent API & UI:** Same endpoints, ports, and features for Docker/manual
+
+---
+
+## 🏗️ Project Structure
 
 ```
-cafe-fausse-backend/
-├── app.py                 # Main Flask application
-├── models.py             # Database models
-├── routes.py             # API endpoints
-├── schemas.py            # Request/response validation
-├── database.py           # Database initialization
-├── requirements.txt      # Python dependencies
-├── env.example           # Environment variables template
-└── README.md            # This file
+webapplication-project/
+├── front-end/           # React frontend
+├── back-end/            # Flask backend (modular)
+├── docker-compose.yml   # Docker orchestration
+├── README.md            # This file (start here)
+├── DOCKER_README.md     # Docker setup guide
+└── DATABASE_SEEDING_GUIDE.md # Data seeding details
 ```
 
-## Setup Instructions
+---
+
+## 🖥️ Manual Setup (No Docker)
 
 ### Prerequisites
+- **Node.js 18+** and npm
+- **Python 3.8+** and pip
+- **PostgreSQL**
+- **Git**
 
-- Python 3.8+
-- PostgreSQL database
-- pip (Python package manager)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd webapplication-project
-   ```
-
-2. **Create virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Set up environment variables**
-   ```bash
-   cp env.example .env
-   # Edit .env with your configuration
-   ```
-
-5. **Configure PostgreSQL database**
-   - Create a new database: `cafe_fausse`
-   - Update `DATABASE_URL` in `.env` file
-
-6. **Initialize database**
-   ```bash
-   python database.py
-   ```
-
-7. **Run the application**
-   ```bash
-   python app.py
-   ```
-
-The API will be available at `http://localhost:5000`
-
-## API Endpoints
-
-### Health Check
-- `GET /health` - API health status
-
-### Reservations
-- `POST /api/reservations` - Create a new reservation
-- `GET /api/reservations` - Get all reservations (admin)
-- `GET /api/reservations/<id>` - Get specific reservation
-- `PUT /api/reservations/<id>` - Update reservation status
-- `GET /api/reservations/availability` - Check availability
-
-### Newsletter
-- `POST /api/newsletter/subscribe` - Subscribe to newsletter
-- `POST /api/newsletter/unsubscribe` - Unsubscribe from newsletter
-
-### Menu
-- `GET /api/menu/categories` - Get all menu categories with items
-- `POST /api/menu/categories` - Create menu category (admin)
-- `POST /api/menu/items` - Create menu item (admin)
-
-### Testimonials
-- `GET /api/testimonials` - Get approved testimonials
-- `POST /api/testimonials` - Submit new testimonial
-
-### Restaurant Information
-- `GET /api/restaurant/info` - Get restaurant information
-- `PUT /api/restaurant/info` - Update restaurant info (admin)
-
-### Awards
-- `GET /api/awards` - Get all awards
-- `POST /api/awards` - Create new award (admin)
-
-## API Usage Examples
-
-### Create a Reservation
+### 1. Clone the Repository
 ```bash
-curl -X POST http://localhost:5000/api/reservations \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Doe",
-    "email": "john@example.com",
-    "phone": "(555) 123-4567",
-    "date": "2024-02-15",
-    "time": "19:00",
-    "party_size": 4,
-    "special_requests": "Window seat preferred"
-  }'
+git clone <repository-url>
+cd webapplication-project
 ```
 
-### Subscribe to Newsletter
+### 2. Configure Environment
+- **Backend:**
+  ```bash
+  cd back-end
+  cp env.example .env
+  # Edit .env with your PostgreSQL credentials
+  ```
+- **Frontend:**
+  ```bash
+  cd ../front-end
+  cp .env.example .env  # If present
+  # Set VITE_API_URL to http://localhost:5000
+  ```
+
+### 3. Set Up the Database
+- Create a PostgreSQL database (e.g., `cafe_fausse`).
+- Update `DATABASE_URL` in `back-end/.env`.
+
+### 4. Install Dependencies
+- **Backend:**
+  ```bash
+  cd ../back-end
+  python -m venv venv
+  source venv/bin/activate  # On Windows: venv\Scripts\activate
+  pip install -r requirements.txt
+  ```
+- **Frontend:**
+  ```bash
+  cd ../front-end
+  npm install
+  ```
+
+### 5. Initialize Database with Demo Data
 ```bash
-curl -X POST http://localhost:5000/api/newsletter/subscribe \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "john@example.com",
-    "name": "John Doe"
-  }'
+cd ../back-end
+python init_database.py  # Creates tables and seeds demo data
+# Or, to only seed data (if tables already exist):
+python seed_only.py
 ```
 
-### Get Menu Categories
+### 6. Run the Applications
+- **Backend:**
+  ```bash
+  python run.py
+  # API available at http://localhost:5000
+  ```
+- **Frontend:**
+  ```bash
+  cd ../front-end
+  npm run dev
+  # App available at http://localhost:5173
+  ```
+
+### 7. Verify Everything is Working ✅
+
+#### Check Backend Health
 ```bash
-curl http://localhost:5000/api/menu/categories
+curl http://localhost:5000/health
+# Should return: {"status": "healthy", "database": "connected", ...}
 ```
 
-### Check Reservation Availability
+#### Check Demo Data
 ```bash
-curl "http://localhost:5000/api/reservations/availability?date=2024-02-15&time=19:00"
+# Check menu categories
+curl http://localhost:5000/api/menu/categories | jq '.[0].name'
+# Should return: "Appetizers"
+
+# Check testimonials
+curl http://localhost:5000/api/testimonials | jq 'length'
+# Should return: 6
+
+# Check gallery images
+curl http://localhost:5000/api/gallery/images | jq 'length'
+# Should return: 12
 ```
 
-## Database Schema
+#### Check Frontend
+- Open http://localhost:5173 in your browser
+- You should see the Café Fausse homepage
+- Navigate to Menu, Gallery, etc. to verify data is loading
 
-### Tables
-- **reservations**: Table reservations with status tracking
-- **newsletter_subscribers**: Email subscriptions
-- **menu_categories**: Menu sections (Appetizers, Main Courses, etc.)
-- **menu_items**: Individual menu items with dietary info
-- **testimonials**: Customer reviews and ratings
-- **restaurant_info**: Restaurant details and hours
-- **awards**: Restaurant accolades and recognition
+#### Test Login
+- Go to the login page
+- Use: `admin@cafefausse.com` / `demo123456`
+- You should be able to log in and access admin features
 
-## Environment Variables
+**🎉 Success!** Your app is now running with complete demo data.
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `FLASK_ENV` | Flask environment | `development` |
-| `SECRET_KEY` | Flask secret key | `dev-secret-key` |
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://localhost/cafe_fausse` |
-| `DEBUG` | Enable debug mode | `True` |
+> **💡 Need to verify everything is working?** See [SETUP_VERIFICATION.md](SETUP_VERIFICATION.md) for detailed verification steps.
 
-## Development
+---
 
-### Running in Development
-```bash
-export FLASK_ENV=development
-python app.py
+## 🐳 Docker Setup (Recommended)
+See [DOCKER_README.md](DOCKER_README.md) for full instructions.
+
+- One-command setup: `docker-compose up -d`
+- All services (frontend, backend, database) start automatically
+- Demo data is seeded on first run
+- URLs:
+  - **Frontend:** http://localhost:8080 (or 3000/5173 if configured)
+  - **Backend:** http://localhost:5001
+
+---
+
+## 🔑 Demo Login Credentials
+- **Demo User:** `demo@cafefausse.com` / `demo123456`
+- **Admin User:** `admin@cafefausse.com` / `demo123456`
+- **Chef User:** `chef@cafefausse.com` / `demo123456`
+
+---
+
+## 🔗 API Endpoints (Sample)
+- `GET /health` — API health check
+- `POST /api/reservations` — Create reservation
+- `GET /api/menu/categories` — Get menu
+- `GET /api/testimonials` — Get testimonials
+- `GET /api/gallery/images` — Get gallery images
+- `POST /api/auth/login` — Login
+
+See [back-end/README.md](back-end/README.md) for full API docs and usage examples.
+
+---
+
+## ⚙️ Environment Variables
+
+### Backend (`back-end/.env`)
+```
+FLASK_ENV=development
+SECRET_KEY=your-secret-key
+DATABASE_URL=postgresql://username:password@localhost/cafe_fausse
+DEBUG=True
 ```
 
-### Database Migrations
-```bash
-flask db init
-flask db migrate -m "Initial migration"
-flask db upgrade
+### Frontend (`front-end/.env`)
+```
+VITE_API_URL=http://localhost:5000
 ```
 
-### Testing
-```bash
-# Run with pytest (when tests are added)
-pytest
-```
+---
 
-## Production Deployment
+## 🛠️ Troubleshooting & FAQ
 
-### Using Gunicorn
-```bash
-gunicorn -w 4 -b 0.0.0.0:5000 app:create_app()
-```
+### Common Issues
+- **Database connection error:**
+  - Check `DATABASE_URL` in `.env` and ensure PostgreSQL is running.
+- **Frontend can't connect to backend:**
+  - Check `VITE_API_URL` and backend port.
+- **Missing dependencies:**
+  - Run `npm install` (frontend) and `pip install -r requirements.txt` (backend).
+- **Port conflicts:**
+  - Use `lsof -i :PORT` to find and stop conflicting processes.
+- **Demo data not loading:**
+  - Run `python init_database.py` (manual) or `docker-compose exec backend python init_database.py` (Docker).
 
-### Environment Setup
-- Set `FLASK_ENV=production`
-- Use strong `SECRET_KEY`
-- Configure production `DATABASE_URL`
-- Set `DEBUG=False`
+### FAQ
+- **Q: Is the manual setup identical to Docker?**
+  - **A:** Yes! Both methods deliver the same demo data, endpoints, and experience.
+- **Q: Can I use my own database?**
+  - **A:** Yes, just update `DATABASE_URL` in `.env`.
+- **Q: How do I reset demo data?**
+  - **A:** Run `python init_database.py` (manual) or `docker-compose exec backend python init_database.py` (Docker).
+- **Q: Where are the admin features?**
+  - **A:** Log in as `admin@cafefausse.com` to access admin endpoints.
+- **Q: How do I verify everything is working?**
+  - **A:** Follow the verification steps in section 7 above.
 
-## Error Handling
+---
 
-The API returns consistent error responses:
+## 🗺️ Documentation Map
+- **[README.md](README.md):** Start here (manual & overview)
+- **[DOCKER_README.md](DOCKER_README.md):** Docker setup
+- **[back-end/README.md](back-end/README.md):** Backend API & dev details
+- **[DATABASE_SEEDING_GUIDE.md](DATABASE_SEEDING_GUIDE.md):** Data seeding details
+- **[SETUP_VERIFICATION.md](SETUP_VERIFICATION.md):** Verify your setup is working
 
-```json
-{
-  "error": "Error message",
-  "details": "Additional error details (if applicable)"
-}
-```
+---
 
-Common HTTP status codes:
-- `200`: Success
-- `201`: Created
-- `400`: Bad Request (validation errors)
-- `404`: Not Found
-- `409`: Conflict (duplicate data)
-- `500`: Internal Server Error
-
-## Contributing
-
+## 🤝 Contributing
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
 
-## License
+---
 
-This project is licensed under the MIT License.
+## 📄 License
+MIT License
 
-## Support
+---
 
-For support or questions, please contact the development team or create an issue in the repository. 
+## 🆘 Support
+- Review the docs above
+- Check troubleshooting/FAQ
+- Create an issue in the repository 

@@ -44,7 +44,7 @@ def setup_database():
     
     print("\n📋 STEP 2: Create Database")
     print("• Sign up and create a new project")
-    print("• Create a database named 'cafe_fausse'")
+    print("• Create a database named 'cafe_fausse_2'")
     print("• Copy the connection string")
     
     print("\n📋 STEP 3: Update .env File")
@@ -67,9 +67,11 @@ def setup_database():
     
     print("\n🔗 EXAMPLE URL FORMATS:")
     print("Neon:")
-    print("  postgresql://username:password@ep-cool-forest-123456.us-east-1.aws.neon.tech/cafe_fausse?sslmode=require")
+    print("  postgresql://username:password@ep-cool-forest-123456.us-east-1.aws.neon.tech/cafe_fausse_2?sslmode=require")
     print("\nSupabase:")
     print("  postgresql://postgres:password@db.supabase.co:5432/postgres")
+    print("\nLocal Development:")
+    print("  postgresql://postgres:postgres@localhost:5432/cafe_fausse_2")
     
     print("\n⚠️  IMPORTANT NOTES:")
     print("• Never commit .env to version control")

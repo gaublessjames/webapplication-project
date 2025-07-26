@@ -135,10 +135,10 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4 text-primary-400">Contact Info</h4>
             <div className="space-y-3 text-gray-300">
-              <p>📍 123 Culinary Street<br />Food District, FD 12345</p>
-              <p>📞 (555) 123-4567</p>
+              <p>📍 1234 Culinary Ave, Suite 100<br />Washington, DC 20002</p>
+              <p>📞 (202) 555-4567</p>
               <p>✉️ info@cafefausse.com</p>
-              <p>🕒 Tue-Sun: 12PM-10PM<br />Closed Mondays</p>
+              <p>🕒 Monday–Saturday: 5:00PM – 11:00 PM<br />Sunday: 5:00 PM – 9:00 PM</p>
             </div>
           </div>
         </div>

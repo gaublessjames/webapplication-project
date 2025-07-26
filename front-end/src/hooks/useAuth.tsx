@@ -172,7 +172,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } else {
       setRole(null);
     }
-    // eslint-disable-next-line
+     
   }, [user, profile]);
 
   // Sign out function

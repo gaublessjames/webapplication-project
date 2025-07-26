@@ -3,6 +3,8 @@ import { useParams, useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LOCAL_API_URL } from "@/integrations/supabase/client";
+import { LoadingSpinner } from "@/components/shared";
+import { Calendar, Users, Clock, AlertTriangle, CheckCircle, X } from "lucide-react";
 
 const CancelReservation = () => {
   const { id: idFromParams } = useParams();
@@ -98,21 +100,24 @@ const CancelReservation = () => {
   const isCancelling = uiState === "cancelling";
 
   return (
-    <div className="min-h-screen bg-primary-50 flex items-center justify-center px-4">
-      <Card className="max-w-lg w-full shadow-xl border border-primary-100">
-        <CardHeader>
-          <CardTitle className="text-primary-700 text-2xl font-bold text-center">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center px-4">
+      <Card className="max-w-lg w-full shadow-xl border border-primary-200">
+        <CardHeader className="text-center">
+          <CardTitle className="text-primary-700 text-2xl font-bold">
             Cancel Reservation
           </CardTitle>
         </CardHeader>
         <CardContent>
           {uiState === "loading" && (
-            <div className="text-center py-8 text-gray-600">Loading reservation...</div>
+            <div className="text-center py-8">
+              <LoadingSpinner text="Loading reservation..." />
+            </div>
           )}
           {uiState === "error" && (
-            <div className="text-red-600 text-center mt-8">
-              <h2 className="text-xl font-semibold mb-2">Reservation not found.</h2>
-              <p>
+            <div className="text-center py-8">
+              <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2 text-red-700">Reservation not found</h2>
+              <p className="text-gray-600">
                 This reservation could not be found. It may have already been cancelled, deleted, or the link is invalid.<br/>
                 Please contact us if you need help.
               </p>
@@ -120,31 +125,49 @@ const CancelReservation = () => {
           )}
           {uiState === "cancelled" && (
             <div className="text-center py-8">
-              <div className="text-4xl mb-4">✅</div>
-              <div className="text-lg font-semibold text-primary-700 mb-2">Reservation Cancelled</div>
+              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+              <div className="text-lg font-semibold text-green-700 mb-2">Reservation Cancelled</div>
               <div className="text-gray-700 mb-6">Your reservation has been successfully cancelled. We hope to see you another time!</div>
-              <Button asChild className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-2 rounded-lg">
-                <Link to="/">Return Home</Link>
+              <Button asChild className="bg-primary-600 hover:bg-primary-700 text-white">
+                <Link to="/" className="flex items-center">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Return Home
+                </Link>
               </Button>
             </div>
           )}
           {uiState === "ready" && reservation && (
             <div className="text-center">
-              <div className="text-4xl mb-4">🗓️</div>
-              <div className="text-lg font-semibold text-primary-700 mb-2">Reservation Details</div>
-              <div className="mb-4 text-gray-700">
-                <div><b>Date:</b> {date}</div>
-                <div><b>Time:</b> {time}</div>
-                <div><b>Guests:</b> {guests}</div>
-                <div><b>Table:</b> {table}</div>
-                <div className="mt-2 text-sm text-gray-500">Reservation ID: {reservation?.id}</div>
+              <Calendar className="h-12 w-12 text-primary-600 mx-auto mb-4" />
+              <div className="text-lg font-semibold text-primary-700 mb-4">Reservation Details</div>
+              <div className="mb-6 space-y-3 text-gray-700">
+                <div className="flex items-center justify-center space-x-2">
+                  <Calendar className="h-4 w-4 text-primary-600" />
+                  <span><b>Date:</b> {date}</span>
+                </div>
+                <div className="flex items-center justify-center space-x-2">
+                  <Clock className="h-4 w-4 text-primary-600" />
+                  <span><b>Time:</b> {time}</span>
+                </div>
+                <div className="flex items-center justify-center space-x-2">
+                  <Users className="h-4 w-4 text-primary-600" />
+                  <span><b>Guests:</b> {guests}</span>
+                </div>
+                {table && (
+                  <div className="flex items-center justify-center space-x-2">
+                    <span className="text-2xl">🍽️</span>
+                    <span><b>Table:</b> {table}</span>
+                  </div>
+                )}
+                <div className="mt-4 text-sm text-gray-500">Reservation ID: {reservation?.id}</div>
               </div>
               <div className="mb-6 text-gray-600">Are you sure you want to cancel this reservation?</div>
               <Button
                 onClick={handleCancel}
                 disabled={isCancelling}
-                className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-lg"
+                className="bg-red-600 hover:bg-red-700 text-white"
               >
+                <X className="h-4 w-4 mr-2" />
                 {isCancelling ? "Cancelling..." : "Yes, Cancel Reservation"}
               </Button>
             </div>

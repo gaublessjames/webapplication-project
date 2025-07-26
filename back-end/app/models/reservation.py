@@ -1,0 +1,45 @@
+"""
+Table reservation model
+"""
+
+from datetime import datetime
+from sqlalchemy.dialects.postgresql import UUID
+import uuid
+from app.extensions import db
+
+class Reservation(db.Model):
+    """Table reservation model"""
+    __tablename__ = 'reservations'
+    
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    time = db.Column(db.Time, nullable=False)
+    party_size = db.Column(db.Integer, nullable=False)
+    special_requests = db.Column(db.Text)
+    status = db.Column(db.String(20), default='pending')  # pending, confirmed, cancelled
+    table_number = db.Column(db.Integer, nullable=True)  # Table number assigned to this reservation
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'), nullable=True)
+    
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'name': self.name,
+            'email': self.email,
+            'phone': self.phone,
+            'date': self.date.isoformat() if self.date else None,
+            'time': self.time.strftime('%H:%M') if self.time else None,
+            'party_size': self.party_size,
+            'special_requests': self.special_requests,
+            'status': self.status,
+            'table_number': self.table_number,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'user_id': str(self.user_id) if self.user_id else None
+        }
+
+    def __repr__(self):
+        return f'<Reservation {self.name} - {self.date} {self.time}>' 

@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Award, Star, Camera, Heart, Phone, MapPin, Clock, Calendar, ChefHat, Users, ChevronLeft, ChevronRight, X } from "lucide-react";
@@ -9,6 +8,13 @@ import restaurantHero from "@/assets/restaurant-hero.jpg";
 import { useApi } from '@/hooks/useApi';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { GalleryGrid, GalleryFilter } from '@/components/features/gallery';
+import { LoadingSpinner } from '@/components/shared';
+
+// Import local gallery assets
+import galleryCafeInterior from "@/assets/gallery-cafe-interior.webp";
+import galleryRibeyeSteak from "@/assets/gallery-ribeye-steak.webp";
+import gallerySpecialEvent from "@/assets/gallery-special-event.webp";
 
 const Gallery = () => {
   const { getGalleryImages } = useApi();
@@ -16,15 +22,53 @@ const Gallery = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Local gallery images that always display first
+  const localGalleryImages = [
+    {
+      id: "local-cafe-interior",
+      url: galleryCafeInterior,
+      alt: "Elegant Café Fausse Interior",
+      title: "Café Fausse Interior",
+      description: "Our elegant dining room with warm lighting and sophisticated ambiance",
+      category: "interior",
+      is_featured: true,
+      is_local: true
+    },
+    {
+      id: "local-ribeye-steak",
+      url: galleryRibeyeSteak,
+      alt: "Premium Ribeye Steak",
+      title: "Premium Ribeye Steak",
+      description: "Perfectly cooked ribeye steak with our signature herb butter",
+      category: "food",
+      is_featured: true,
+      is_local: true
+    },
+    {
+      id: "local-special-event",
+      url: gallerySpecialEvent,
+      alt: "Special Event Setup",
+      title: "Special Event Setup",
+      description: "Private dining and special event arrangements for memorable occasions",
+      category: "events",
+      is_featured: true,
+      is_local: true
+    }
+  ];
+
   useEffect(() => {
     setLoading(true);
     getGalleryImages()
       .then((data) => {
-        setGalleryImages(Array.isArray(data) ? data : []);
+        // Combine local images first, then database images
+        const dbImages = Array.isArray(data) ? data : [];
+        const combinedImages = [...localGalleryImages, ...dbImages];
+        setGalleryImages(combinedImages);
       })
       .catch((e) => {
         setError('Failed to load gallery images.');
-        setGalleryImages([]);
+        // Even if database fails, show local images
+        setGalleryImages(localGalleryImages);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -35,63 +79,44 @@ const Gallery = () => {
 
   const awards = [
     {
-      title: "Michelin Star",
-      year: "2018-2024",
-      organization: "Michelin Guide",
-      description: "Consistently awarded for exceptional culinary excellence and service",
-      icon: "⭐"
-    },
-    {
-      title: "World's 50 Best Restaurants",
-      year: "2023", 
-      organization: "The World's 50 Best",
-      description: "Ranked among the globe's finest dining establishments",
-      icon: "🌍"
-    },
-    {
-      title: "James Beard Nomination",
+      title: "Culinary Excellence Award",
       year: "2022",
-      organization: "James Beard Foundation",
-      description: "Outstanding Restaurant nominee for culinary excellence",
+      organization: "Culinary Institute",
+      description: "Recognized for outstanding culinary excellence and commitment to unforgettable dining experiences",
       icon: "🏆"
     },
     {
-      title: "Wine Spectator Grand Award",
-      year: "2021-2024",
-      organization: "Wine Spectator",
-      description: "Recognized for exceptional wine program and cellar",
-      icon: "🍷"
+      title: "Restaurant of the Year",
+      year: "2023", 
+      organization: "Food & Wine Magazine",
+      description: "Named 'Restaurant of the Year' for exceptional service and locally sourced ingredients",
+      icon: "🥇"
+    },
+    {
+      title: "Best Fine Dining Experience",
+      year: "2023",
+      organization: "Foodie Magazine",
+      description: "Awarded for providing the best fine dining experience in the region",
+      icon: "⭐"
     }
   ];
 
   const reviews = [
     {
-      quote: "An extraordinary culinary journey that transcends typical fine dining. Every course is a masterpiece.",
-      source: "Food & Wine Magazine",
+      quote: "Exceptional ambiance and unforgettable flavors.",
+      source: "Gourmet Review",
       rating: 5,
-      reviewer: "James Patterson, Food Critic"
+      reviewer: "Gourmet Review"
     },
     {
-      quote: "Café Fausse represents the pinnacle of gastronomic achievement. Absolutely flawless execution.",
-      source: "Michelin Guide",
+      quote: "A must-visit restaurant for food enthusiasts.",
+      source: "The Daily Bite",
       rating: 5,
-      reviewer: "Sarah Chen, Inspector"
-    },
-    {
-      quote: "The perfect harmony of innovation and tradition. This is destination dining at its finest.",
-      source: "Condé Nast Traveler",
-      rating: 5,
-      reviewer: "Michael Torres, Editor"
-    },
-    {
-      quote: "An unforgettable experience that engages all senses. The attention to detail is remarkable.",
-      source: "The New York Times",
-      rating: 5,
-      reviewer: "Emma Rodriguez, Critic"
+      reviewer: "The Daily Bite"
     }
   ];
 
-  // Categories from images
+  // Categories from images (including local images)
   const categories = [
     "All",
     ...Array.from(new Set(galleryImages.map(img => img.category).filter(Boolean)))
@@ -159,22 +184,11 @@ const Gallery = () => {
       {/* Filter Buttons */}
       <section className="py-8 px-4 bg-gradient-to-r from-primary-50 via-primary-100 to-primary-50">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap justify-center gap-3">
-            {categories.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category)}
-                className={`transition-all duration-300 ${
-                  selectedCategory === category 
-                    ? "bg-primary-600 text-white shadow-lg hover:bg-primary-700" 
-                    : "border-primary-300 text-primary-600 hover:bg-primary-50"
-                }`}
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
+          <GalleryFilter
+            images={galleryImages}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+          />
         </div>
       </section>
 
@@ -182,41 +196,19 @@ const Gallery = () => {
       <section className="py-16 md:py-20 flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
-            <div className="text-center text-primary-600 py-12 text-xl">Loading gallery...</div>
+            <div className="text-center py-12">
+              <LoadingSpinner text="Loading gallery..." />
+            </div>
           ) : error ? (
             <div className="text-center text-red-600 py-12 text-xl">{error}</div>
           ) : filteredImages.length === 0 ? (
             <div className="text-center text-primary-400 py-12 text-xl">No images available.</div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredImages.map((image, idx) => (
-                <Card
-                  key={image.id}
-                  className="group cursor-pointer overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-2 border-primary-200"
-                  onClick={() => openLightbox(idx)}
-                  tabIndex={0}
-                  aria-label={`View ${image.alt}`}
-                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") openLightbox(idx); }}
-                >
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={image.url}
-                      alt={image.alt}
-                      className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-                    <Badge className="absolute top-3 right-3 bg-primary-600/90 text-white border-0 shadow-lg">
-                      {image.category}
-                    </Badge>
-                    <div className="absolute bottom-3 left-3 right-3">
-                      <div className="bg-white/90 backdrop-blur-sm rounded-lg p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <p className="text-xs text-gray-800 font-medium truncate">{image.alt}</p>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+            <GalleryGrid
+              images={filteredImages}
+              onImageClick={openLightbox}
+              selectedCategory={selectedCategory}
+            />
           )}
           {/* Lightbox Modal */}
           {lightboxOpen && lightboxIndex >= 0 && (
@@ -238,11 +230,13 @@ const Gallery = () => {
               <div className="relative max-w-3xl w-full mx-4 md:mx-0">
                 <img
                   src={filteredImages[lightboxIndex].url}
-                  alt={filteredImages[lightboxIndex].alt}
+                  alt={filteredImages[lightboxIndex].alt || filteredImages[lightboxIndex].alt_text}
                   className="w-full h-auto max-h-[80vh] rounded-xl shadow-2xl border-4 border-white object-contain"
                 />
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 rounded-b-xl">
-                  <h3 className="text-white font-semibold text-lg mb-2">{filteredImages[lightboxIndex].alt}</h3>
+                  <h3 className="text-white font-semibold text-lg mb-2">
+                    {filteredImages[lightboxIndex].alt || filteredImages[lightboxIndex].alt_text}
+                  </h3>
                   <Badge className="bg-primary-600 text-white border-0">
                     {filteredImages[lightboxIndex].category}
                   </Badge>
@@ -257,6 +251,61 @@ const Gallery = () => {
               </button>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Awards Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-r from-yellow-50 via-primary-100 to-yellow-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="text-5xl mb-4">🏆</div>
+            <h2 className="text-3xl md:text-4xl font-bold text-primary-700 mb-6">Our Awards</h2>
+            <div className="w-20 h-1 bg-gradient-to-r from-primary-500 to-primary-700 mx-auto mb-8 rounded-full"></div>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Recognition for our commitment to culinary excellence and exceptional dining experiences
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {awards.map((award, index) => (
+              <div key={index} className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border border-primary-200">
+                <div className="text-4xl mb-4">{award.icon}</div>
+                <h3 className="text-xl font-bold text-primary-700 mb-2">{award.title}</h3>
+                <p className="text-primary-600 font-medium mb-2">{award.organization} - {award.year}</p>
+                <p className="text-gray-600 text-sm">{award.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-r from-primary-50 via-white to-primary-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="text-5xl mb-4">💬</div>
+            <h2 className="text-3xl md:text-4xl font-bold text-primary-700 mb-6">Customer Reviews</h2>
+            <div className="w-20 h-1 bg-gradient-to-r from-primary-500 to-primary-700 mx-auto mb-8 rounded-full"></div>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              What our valued guests have to say about their dining experiences
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8">
+            {reviews.map((review, index) => (
+              <div key={index} className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border border-primary-200">
+                <div className="flex items-center mb-4">
+                  {[1,2,3,4,5].map(star => (
+                    <Star key={star} className={`w-5 h-5 ${star <= review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
+                  ))}
+                </div>
+                <blockquote className="text-lg italic text-gray-700 mb-4">
+                  "{review.quote}"
+                </blockquote>
+                <div className="text-sm text-primary-600 font-medium">
+                  — {review.reviewer}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

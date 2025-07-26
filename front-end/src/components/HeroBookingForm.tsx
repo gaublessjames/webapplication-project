@@ -170,7 +170,7 @@ const HeroBookingForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     try {
       // First, create or get customer
       let customerId;
-      let customerRes = await getCustomerByEmail(customerData.email);
+      const customerRes = await getCustomerByEmail(customerData.email);
       if (customerRes && customerRes.customer) {
         customerId = customerRes.customer.id;
       } else {
