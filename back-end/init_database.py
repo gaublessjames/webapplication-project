@@ -6,7 +6,7 @@ Database initialization script for Café Fausse
 import os
 import sys
 from app import create_app
-from models import db
+from app.extensions import db
 from seed_database import seed_database
 
 def init_database():

@@ -180,86 +180,104 @@ export default function AdminDashboard() {
   const delayedGalleryLoading = useDelayedLoading(galleryLoading);
   const delayedFetching = useDelayedLoading(fetching);
 
-  // Load data effects
+  // Load data effects - only when user is authenticated and has admin role
   useEffect(() => {
-    if (!user || role !== 'admin') return;
+    if (!user || role !== 'admin' || loading) return;
     loadDashboardData();
-  }, [user, role, currentPage]);
+  }, [user, role, currentPage, loading]);
 
   // Load testimonials only when testimonials tab is active or on initial load
   useEffect(() => {
-    if (!user || role !== 'admin') return;
+    if (!user || role !== 'admin' || loading) return;
     if (activeTab === 'testimonials' || activeTab === 'overview') {
       setTestimonialsLoading(true);
       getAllTestimonialsAdmin()
         .then(data => setTestimonials(data))
-        .catch(e => setTestimonialError(e.message || 'Failed to load testimonials'))
+        .catch(e => {
+          console.error('Failed to load testimonials:', e);
+          setTestimonialError(e.message || 'Failed to load testimonials');
+        })
         .finally(() => setTestimonialsLoading(false));
     }
-  }, [user, role, activeTab, getAllTestimonialsAdmin]);
+  }, [user, role, activeTab, getAllTestimonialsAdmin, loading]);
 
   // Load awards only when awards tab is active or on initial load
   useEffect(() => {
-    if (!user || role !== 'admin') return;
+    if (!user || role !== 'admin' || loading) return;
     if (activeTab === 'awards' || activeTab === 'overview') {
       setAwardsLoading(true);
       getAllAwards()
         .then(data => setAwards(data))
-        .catch(e => setAwardsError(e.message || 'Failed to load awards'))
+        .catch(e => {
+          console.error('Failed to load awards:', e);
+          setAwardsError(e.message || 'Failed to load awards');
+        })
         .finally(() => setAwardsLoading(false));
     }
-  }, [user, role, activeTab, getAllAwards]);
+  }, [user, role, activeTab, getAllAwards, loading]);
 
   // Load menu categories only when menu tab is active or on initial load
   useEffect(() => {
-    if (!user || role !== 'admin') return;
+    if (!user || role !== 'admin' || loading) return;
     if (activeTab === 'menu' || activeTab === 'overview') {
       setMenuCategoriesLoading(true);
       getMenuCategories()
         .then(data => setMenuCategories(data))
-        .catch(e => setMenuCategoriesError(e.message || 'Failed to load menu categories'))
+        .catch(e => {
+          console.error('Failed to load menu categories:', e);
+          setMenuCategoriesError(e.message || 'Failed to load menu categories');
+        })
         .finally(() => setMenuCategoriesLoading(false));
     }
-  }, [user, role, activeTab, getMenuCategories]);
+  }, [user, role, activeTab, getMenuCategories, loading]);
 
   // Load menu with items only when menu tab is active or on initial load
   useEffect(() => {
-    if (!user || role !== 'admin') return;
+    if (!user || role !== 'admin' || loading) return;
     if (activeTab === 'menu' || activeTab === 'overview') {
       setMenuItemsLoading(true);
       getMenuWithItems()
         .then(data => setMenuWithItems(data))
-        .catch(e => setMenuItemsError(e.message || 'Failed to load menu items'))
+        .catch(e => {
+          console.error('Failed to load menu items:', e);
+          setMenuItemsError(e.message || 'Failed to load menu items');
+        })
         .finally(() => setMenuItemsLoading(false));
     }
-  }, [user, role, activeTab, getMenuWithItems]);
+  }, [user, role, activeTab, getMenuWithItems, loading]);
 
   // Load gallery images only when gallery tab is active
   useEffect(() => {
-    if (!user || role !== 'admin') return;
+    if (!user || role !== 'admin' || loading) return;
     if (activeTab === 'gallery') {
       setGalleryLoading(true);
       getGalleryImages()
         .then(data => setGalleryImages(data))
-        .catch(e => setGalleryError(e.message || 'Failed to load gallery images'))
+        .catch(e => {
+          console.error('Failed to load gallery images:', e);
+          setGalleryError(e.message || 'Failed to load gallery images');
+        })
         .finally(() => setGalleryLoading(false));
     }
-  }, [activeTab, user, role, getGalleryImages]);
+  }, [activeTab, user, role, getGalleryImages, loading]);
 
   // Load reservations when reservations tab is active
   useEffect(() => {
-    if (activeTab === 'reservations' && user && role === 'admin') {
+    if (activeTab === 'reservations' && user && role === 'admin' && !loading) {
       loadDashboardData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, user, role, currentPage]);
+  }, [activeTab, user, role, currentPage, loading]);
 
   const loadDashboardData = async () => {
+    console.log('🔍 Loading dashboard data...', { user: user?.email, role, loading });
     setFetching(true);
     try {
       const response = await getAllReservationsWithCustomers(currentPage);
+      console.log('📊 Dashboard data response:', response);
       
       if (response.error) {
+        console.error('❌ Dashboard data error:', response.error);
         setError("Failed to fetch reservations.");
       } else {
         // Handle new paginated response format
@@ -283,6 +301,7 @@ export default function AdminDashboard() {
         setError("");
       }
     } catch (err) {
+      console.error('❌ Dashboard data exception:', err);
       setError("Failed to fetch reservations.");
     } finally {
       setFetching(false);
