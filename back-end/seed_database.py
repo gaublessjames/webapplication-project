@@ -618,48 +618,52 @@ def create_newsletter_subscribers():
 
 def create_sample_reservations():
     """Create sample reservations"""
-    # Get existing users
+    # Get existing users and customers
     users = User.query.all()
+    customers = Customer.query.all()
+    
     if not users:
         print("⚠️  No users found, skipping reservations")
         return
     
+    if not customers:
+        print("⚠️  No customers found, creating some first...")
+        create_customers()
+        customers = Customer.query.all()
+    
     # Create sample reservations for the next 30 days
     base_date = datetime.now().date()
-    reservation_data = []
     
     for i in range(20):
         date = base_date + timedelta(days=random.randint(1, 30))
         time_slots = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"]
         time = datetime.strptime(random.choice(time_slots), "%H:%M").time()
         
-        reservation_data.append({
-            "name": f"Guest {i+1}",
-            "email": f"guest{i+1}@email.com",
-            "phone": f"+1-555-{1000+i:04d}",
-            "date": date,
-            "time": time,
-            "party_size": random.randint(2, 8),
-            "special_requests": random.choice([None, "Window seat please", "Anniversary celebration", "Gluten-free options needed"]),
-            "status": random.choice(["pending", "confirmed", "confirmed", "confirmed"]),  # More confirmed than pending
-            "table_number": random.randint(1, 20),
-            "user_id": random.choice(users).id if random.random() > 0.5 else None
-        })
-    
-    for res_data in reservation_data:
+        # Randomly select a customer
+        customer = random.choice(customers)
+        
+        # Check if reservation already exists for this customer, date, and time
         existing = Reservation.query.filter_by(
-            name=res_data["name"],
-            email=res_data["email"],
-            date=res_data["date"],
-            time=res_data["time"]
+            customer_id=customer.id,
+            date=date,
+            time=time
         ).first()
         
         if not existing:
-            reservation = Reservation(**res_data)
+            reservation = Reservation(
+                customer_id=customer.id,
+                date=date,
+                time=time,
+                party_size=random.randint(2, 8),
+                special_requests=random.choice([None, "Window seat please", "Anniversary celebration", "Gluten-free options needed"]),
+                status=random.choice(["pending", "confirmed", "confirmed", "confirmed"]),  # More confirmed than pending
+                table_number=random.randint(1, 20),
+                user_id=random.choice(users).id if random.random() > 0.5 else None
+            )
             db.session.add(reservation)
-            print(f"✅ Created reservation for {res_data['name']} on {res_data['date']}")
+            print(f"✅ Created reservation for {customer.name} on {date}")
         else:
-            print(f"ℹ️  Reservation already exists for {res_data['name']}")
+            print(f"ℹ️  Reservation already exists for {customer.name} on {date}")
 
 def create_user_profiles():
     """Create user profiles"""

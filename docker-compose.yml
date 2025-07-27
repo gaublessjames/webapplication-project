@@ -41,6 +41,7 @@ services:
     environment:
       VITE_LOCAL_API_URL: http://localhost:5001/api
       NODE_ENV: development
+      DOCKER_ENV: "true"
     ports:
       - "8080:8080"
     depends_on:
