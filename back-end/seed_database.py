@@ -57,8 +57,8 @@ def seed_database():
             print("🔄 Creating newsletter subscribers...")
             create_newsletter_subscribers()
             
-            print("🔄 Creating sample reservations...")
-            create_sample_reservations()
+            # print("🔄 Creating sample reservations...")
+            # create_sample_reservations()
             
             print("🔄 Creating user profiles...")
             create_user_profiles()
