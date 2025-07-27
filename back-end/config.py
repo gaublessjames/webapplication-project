@@ -20,7 +20,7 @@ class Config:
     # Database Configuration
     # Standard PostgreSQL connection string format:
     # postgresql://username:password@host:port/database_name
-    DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/cafe_fausse_2')
+    DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/cafe_fausse_3')
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
@@ -50,7 +50,7 @@ class ProductionConfig(Config):
 class TestingConfig(Config):
     """Testing configuration"""
     TESTING = True
-    DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/cafe_fausse_2_test'
+    DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/cafe_fausse_3_test'
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
 
 # Configuration dictionary
@@ -63,11 +63,11 @@ config = {
 
 # Standard database URL examples
 DATABASE_URL_EXAMPLES = {
-    'local': 'postgresql://postgres:postgres@localhost:5432/cafe_fausse_2',
-    'neon': 'postgresql://username:password@ep-cool-forest-123456.us-east-1.aws.neon.tech/cafe_fausse_2?sslmode=require',
+    'local': 'postgresql://postgres:postgres@localhost:5432/cafe_fausse_3',
+    'neon': 'postgresql://username:password@ep-cool-forest-123456.us-east-1.aws.neon.tech/cafe_fausse_3?sslmode=require',
     'supabase': 'postgresql://postgres:password@db.supabase.co:5432/postgres',
     'railway': 'postgresql://postgres:password@containers-us-west-1.railway.app:5432/railway',
-    'docker': 'postgresql://cafe_fausse_user:cafe_fausse_pass@db:5432/cafe_fausse_2'
+    'docker': 'postgresql://cafe_fausse_user:cafe_fausse_pass@db:5432/cafe_fausse_3'
 }
 
 def get_database_url_examples():

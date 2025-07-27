@@ -205,9 +205,8 @@ export function useApi() {
 
   // Admin: Get all testimonials
   const getAllTestimonialsAdmin = async () => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/admin/testimonials`, {
+    const res = await fetch(`${LOCAL_API_URL}/admin/testimonials`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error(await res.text());
@@ -216,9 +215,8 @@ export function useApi() {
 
   // Admin: Approve or reject a testimonial
   const approveTestimonial = async (id: string, is_approved: boolean) => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/admin/testimonials/${id}`, {
+    const res = await fetch(`${LOCAL_API_URL}/admin/testimonials/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -232,9 +230,8 @@ export function useApi() {
 
   // Admin: Update a testimonial
   const updateTestimonial = async (id: string, data: any) => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/testimonials/${id}`, {
+    const res = await fetch(`${LOCAL_API_URL}/testimonials/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -248,9 +245,8 @@ export function useApi() {
 
   // Admin: Create a new testimonial
   const createTestimonial = async (testimonial: any) => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/testimonials/`, {
+    const res = await fetch(`${LOCAL_API_URL}/testimonials/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -264,17 +260,15 @@ export function useApi() {
 
   // Admin: Get all awards
   const getAllAwards = async () => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
-    const res = await fetch(`${API_BASE_URL}/awards/`);
+    const res = await fetch(`${LOCAL_API_URL}/awards/`);
     if (!res.ok) throw new Error(await res.text());
     return await res.json();
   };
 
   // Admin: Create a new award
   const createAward = async (award: any) => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/awards/`, {
+    const res = await fetch(`${LOCAL_API_URL}/awards/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -288,9 +282,8 @@ export function useApi() {
 
   // Admin: Update an award
   const updateAward = async (id: string, award: any) => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/awards/${id}`, {
+    const res = await fetch(`${LOCAL_API_URL}/awards/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -304,17 +297,15 @@ export function useApi() {
 
   // Get all menu categories
   const getMenuCategories = async () => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
-    const res = await fetch(`${API_BASE_URL}/menu/categories`);
+    const res = await fetch(`${LOCAL_API_URL}/menu/categories`);
     if (!res.ok) throw new Error(await res.text());
     return await res.json();
   };
 
   // Admin: Create a new menu category
   const createMenuCategory = async (category: any) => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/menu/categories`, {
+    const res = await fetch(`${LOCAL_API_URL}/menu/categories`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -328,9 +319,8 @@ export function useApi() {
 
   // Admin: Update a menu category
   const updateMenuCategory = async (id: string, category: any) => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/menu/categories/${id}`, {
+    const res = await fetch(`${LOCAL_API_URL}/menu/categories/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -344,17 +334,15 @@ export function useApi() {
 
   // Get menu categories with items
   const getMenuWithItems = async () => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
-    const res = await fetch(`${API_BASE_URL}/menu/categories`);
+    const res = await fetch(`${LOCAL_API_URL}/menu/categories`);
     if (!res.ok) throw new Error(await res.text());
     return await res.json();
   };
 
   // Admin: Create a new menu item
   const createMenuItem = async (item: any) => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/menu/items`, {
+    const res = await fetch(`${LOCAL_API_URL}/menu/items`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -369,9 +357,8 @@ export function useApi() {
 
   // Admin: Update a menu item
   const updateMenuItem = async (id: string, item: any) => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/menu/items/${id}`, {
+    const res = await fetch(`${LOCAL_API_URL}/menu/items/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -386,17 +373,15 @@ export function useApi() {
 
   // Gallery: Get all images
   const getGalleryImages = async () => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
-    const res = await fetch(`${API_BASE_URL}/gallery/images`);
+    const res = await fetch(`${LOCAL_API_URL}/gallery/images`);
     if (!res.ok) throw new Error(await res.text());
     return await res.json();
   };
 
   // Admin: Create gallery image
   const createGalleryImage = async (image: any) => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/gallery/images`, {
+    const res = await fetch(`${LOCAL_API_URL}/gallery/images`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -411,9 +396,8 @@ export function useApi() {
 
   // Admin: Update gallery image
   const updateGalleryImage = async (id: string, image: any) => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/gallery/images/${id}`, {
+    const res = await fetch(`${LOCAL_API_URL}/gallery/images/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -428,8 +412,7 @@ export function useApi() {
 
   // Admin: Delete gallery image
   const deleteGalleryImage = async (id: string) => {
-    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
-    const res = await fetch(`${API_BASE_URL}/gallery/images/${id}`, {
+    const res = await fetch(`${LOCAL_API_URL}/gallery/images/${id}`, {
       method: 'DELETE',
       credentials: 'include',
     });

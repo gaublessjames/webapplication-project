@@ -19,6 +19,7 @@ import gallerySpecialEvent from "@/assets/gallery-special-event.webp";
 const Gallery = () => {
   const { getGalleryImages } = useApi();
   const [galleryImages, setGalleryImages] = useState<any[]>([]);
+  const [awards, setAwards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -77,44 +78,39 @@ const Gallery = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
 
-  const awards = [
-    {
-      title: "Culinary Excellence Award",
-      year: "2022",
-      organization: "Culinary Institute",
-      description: "Recognized for outstanding culinary excellence and commitment to unforgettable dining experiences",
-      icon: "🏆"
-    },
-    {
-      title: "Restaurant of the Year",
-      year: "2023", 
-      organization: "Food & Wine Magazine",
-      description: "Named 'Restaurant of the Year' for exceptional service and locally sourced ingredients",
-      icon: "🥇"
-    },
-    {
-      title: "Best Fine Dining Experience",
-      year: "2023",
-      organization: "Foodie Magazine",
-      description: "Awarded for providing the best fine dining experience in the region",
-      icon: "⭐"
-    }
-  ];
+  // Fetch awards from database
+  useEffect(() => {
+    const fetchAwards = async () => {
+      try {
+        const response = await fetch('/api/awards/');
+        if (response.ok) {
+          const awardsData = await response.json();
+          setAwards(awardsData);
+        }
+      } catch (err) {
+        console.error('Failed to fetch awards:', err);
+      }
+    };
+    fetchAwards();
+  }, []);
 
-  const reviews = [
-    {
-      quote: "Exceptional ambiance and unforgettable flavors.",
-      source: "Gourmet Review",
-      rating: 5,
-      reviewer: "Gourmet Review"
-    },
-    {
-      quote: "A must-visit restaurant for food enthusiasts.",
-      source: "The Daily Bite",
-      rating: 5,
-      reviewer: "The Daily Bite"
-    }
-  ];
+  const [reviews, setReviews] = useState<any[]>([]);
+
+  // Fetch reviews from database
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch('/api/testimonials/');
+        if (response.ok) {
+          const reviewsData = await response.json();
+          setReviews(reviewsData);
+        }
+      } catch (err) {
+        console.error('Failed to fetch reviews:', err);
+      }
+    };
+    fetchReviews();
+  }, []);
 
   // Categories from images (including local images)
   const categories = [
@@ -266,14 +262,28 @@ const Gallery = () => {
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
-            {awards.map((award, index) => (
-              <div key={index} className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border border-primary-200">
-                <div className="text-4xl mb-4">{award.icon}</div>
-                <h3 className="text-xl font-bold text-primary-700 mb-2">{award.title}</h3>
-                <p className="text-primary-600 font-medium mb-2">{award.organization} - {award.year}</p>
-                <p className="text-gray-600 text-sm">{award.description}</p>
-              </div>
-            ))}
+            {awards.map((award, index) => {
+              let icon = '🏆';
+              if (award.name.includes('Culinary')) {
+                icon = '🏆';
+              } else if (award.name.includes('Restaurant')) {
+                icon = '🥇';
+              } else if (award.name.includes('Fine Dining')) {
+                icon = '🍽️';
+              } else if (award.name.includes('Wine')) {
+                icon = '🍷';
+              } else if (award.name.includes('Service')) {
+                icon = '⭐';
+              }
+              return (
+                <div key={award.id || index} className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border border-primary-200">
+                  <div className="text-4xl mb-4">{icon}</div>
+                  <h3 className="text-xl font-bold text-primary-700 mb-2">{award.name}</h3>
+                  <p className="text-primary-600 font-medium mb-2">{award.category} - {award.year}</p>
+                  <p className="text-gray-600 text-sm">{award.description}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -291,17 +301,17 @@ const Gallery = () => {
           </div>
           <div className="grid md:grid-cols-2 gap-8">
             {reviews.map((review, index) => (
-              <div key={index} className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border border-primary-200">
+              <div key={review.id || index} className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border border-primary-200">
                 <div className="flex items-center mb-4">
                   {[1,2,3,4,5].map(star => (
                     <Star key={star} className={`w-5 h-5 ${star <= review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
                   ))}
                 </div>
                 <blockquote className="text-lg italic text-gray-700 mb-4">
-                  "{review.quote}"
+                  "{review.comment}"
                 </blockquote>
                 <div className="text-sm text-primary-600 font-medium">
-                  — {review.reviewer}
+                  — {review.title}
                 </div>
               </div>
             ))}

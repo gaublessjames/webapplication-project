@@ -37,7 +37,9 @@ const Index = () => {
   const { getMenuCategories } = useApi();
 
   // API base URL (configurable for dev/prod)
-  const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || 'http://localhost:5001/api';
+  // In development, use the Vite proxy (/api) which forwards to localhost:5001
+  // In production, use the environment variable or fallback
+  const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || '/api';
   
   // Debug logging
   console.log('Environment variables:', {

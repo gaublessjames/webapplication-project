@@ -5,7 +5,7 @@ services:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_DB: cafe_fausse_2
+      POSTGRES_DB: cafe_fausse_3
       POSTGRES_USER: cafe_fausse_user
       POSTGRES_PASSWORD: cafe_fausse_pass
     ports:
@@ -26,7 +26,7 @@ services:
       FLASK_ENV: development
       SECRET_KEY: cafe-fausse-secret-key-2024-dev
       DEBUG: "True"
-      DATABASE_URL: postgresql://cafe_fausse_user:cafe_fausse_pass@db:5432/cafe_fausse_2
+      DATABASE_URL: postgresql://cafe_fausse_user:cafe_fausse_pass@db:5432/cafe_fausse_3
     depends_on:
       - db
     ports:
@@ -39,7 +39,7 @@ services:
       context: ./front-end
       dockerfile: Dockerfile
     environment:
-      VITE_LOCAL_API_URL: http://backend:5000/api
+      VITE_LOCAL_API_URL: http://localhost:5001/api
       NODE_ENV: development
     ports:
       - "8080:8080"

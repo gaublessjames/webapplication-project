@@ -7,7 +7,7 @@ Handles all scenarios: fresh install, existing database, migration conflicts
 import os
 import sys
 from app import create_app
-from app.models import User, Reservation, Testimonial, MenuCategory, MenuItem, GalleryImage
+from app.models import User, Reservation, Testimonial, MenuCategory, MenuItem, GalleryImage, Award
 from app.extensions import db
 import bcrypt
 from sqlalchemy import text
@@ -52,7 +52,8 @@ def ensure_demo_users():
                     email=user_info["email"], 
                     full_name=user_info["full_name"], 
                     role=user_info["role"],
-                    password_hash=hashed
+                    password_hash=hashed,
+                    is_active=True
                 )
                 db.session.add(user)
                 print(f"✅ Created user: {user_info['email']}")
@@ -206,6 +207,319 @@ def ensure_demo_reservations():
         print(f"⚠️  Error committing reservations: {e}")
         db.session.rollback()
 
+def ensure_demo_awards():
+    """Ensure demo awards exist"""
+    awards_data = [
+        {
+            "name": "Best French Restaurant",
+            "description": "Awarded by Food & Wine Magazine for authentic French cuisine",
+            "year": 2023,
+            "category": "Cuisine",
+            "image_url": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
+            "is_featured": True,
+            "display_order": 1
+        },
+        {
+            "name": "Wine Spectator Award",
+            "description": "Recognition for outstanding wine selection and service",
+            "year": 2022,
+            "category": "Wine",
+            "image_url": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&h=300&fit=crop",
+            "is_featured": True,
+            "display_order": 2
+        },
+        {
+            "name": "Service Excellence Award",
+            "description": "Recognized for exceptional customer service and hospitality",
+            "year": 2023,
+            "category": "Service",
+            "image_url": "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400&h=300&fit=crop",
+            "is_featured": False,
+            "display_order": 3
+        }
+    ]
+    
+    for award_data in awards_data:
+        try:
+            existing = Award.query.filter_by(name=award_data["name"]).first()
+            if not existing:
+                award = Award(**award_data)
+                db.session.add(award)
+                print(f"✅ Created award: {award_data['name']}")
+            else:
+                print(f"ℹ️  Award already exists: {award_data['name']}")
+        except Exception as e:
+            print(f"⚠️  Error creating award {award_data['name']}: {e}")
+    
+    try:
+        db.session.commit()
+        print("✅ Awards setup completed!")
+    except Exception as e:
+        print(f"⚠️  Error committing awards: {e}")
+        db.session.rollback()
+
+def ensure_demo_gallery_images():
+    """Ensure demo gallery images exist"""
+    gallery_data = [
+        {
+            "url": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop",
+            "alt": "Elegant restaurant interior with warm lighting",
+            "category": "interior",
+            "display_order": 1
+        },
+        {
+            "url": "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&h=600&fit=crop",
+            "alt": "Coq au Vin dish with red wine sauce",
+            "category": "food",
+            "display_order": 2
+        },
+        {
+            "url": "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop",
+            "alt": "French onion soup with melted cheese",
+            "category": "food",
+            "display_order": 3
+        },
+        {
+            "url": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&h=600&fit=crop",
+            "alt": "Fresh salad with French dressing",
+            "category": "food",
+            "display_order": 4
+        },
+        {
+            "url": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=600&fit=crop",
+            "alt": "Crème brûlée dessert with caramelized top",
+            "category": "dessert",
+            "display_order": 5
+        },
+        {
+            "url": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&h=600&fit=crop",
+            "alt": "French wine selection and glasses",
+            "category": "beverages",
+            "display_order": 6
+        },
+        {
+            "url": "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&h=600&fit=crop",
+            "alt": "Restaurant bar with wine bottles",
+            "category": "interior",
+            "display_order": 7
+        },
+        {
+            "url": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop",
+            "alt": "Cozy dining area with candlelit tables",
+            "category": "interior",
+            "display_order": 8
+        },
+        {
+            "url": "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop",
+            "alt": "Duck confit with crispy skin",
+            "category": "food",
+            "display_order": 9
+        },
+        {
+            "url": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=600&fit=crop",
+            "alt": "Tarte Tatin with caramelized apples",
+            "category": "dessert",
+            "display_order": 10
+        },
+        {
+            "url": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&h=600&fit=crop",
+            "alt": "Chef preparing French cuisine",
+            "category": "kitchen",
+            "display_order": 11
+        },
+        {
+            "url": "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&h=600&fit=crop",
+            "alt": "Outdoor terrace dining area",
+            "category": "exterior",
+            "display_order": 12
+        }
+    ]
+    
+    for img_data in gallery_data:
+        try:
+            existing = GalleryImage.query.filter_by(url=img_data["url"]).first()
+            if not existing:
+                gallery_image = GalleryImage(**img_data)
+                db.session.add(gallery_image)
+                print(f"✅ Created gallery image: {img_data['alt']}")
+            else:
+                print(f"ℹ️  Gallery image already exists: {img_data['alt']}")
+        except Exception as e:
+            print(f"⚠️  Error creating gallery image {img_data['alt']}: {e}")
+    
+    try:
+        db.session.commit()
+        print("✅ Gallery images setup completed!")
+    except Exception as e:
+        print(f"⚠️  Error committing gallery images: {e}")
+        db.session.rollback()
+
+def ensure_demo_menu_items():
+    """Ensure demo menu items exist"""
+    from decimal import Decimal
+    
+    # Get existing categories
+    categories = {}
+    for category in MenuCategory.query.all():
+        categories[category.name] = category
+    
+    if not categories:
+        print("⚠️  No menu categories found, skipping menu items")
+        return
+    
+    # Menu items data
+    menu_items_data = [
+        # Starters
+        {
+            "name": "Bruschetta",
+            "description": "Fresh tomatoes, basil, olive oil, and toasted baguette slices",
+            "price": Decimal("8.50"),
+            "category": "Starters",
+            "is_vegetarian": True,
+            "is_gluten_free": False,
+            "is_spicy": False,
+            "display_order": 1
+        },
+        {
+            "name": "Caesar Salad",
+            "description": "Crisp romaine with homemade Caesar dressing",
+            "price": Decimal("9.00"),
+            "category": "Starters",
+            "is_vegetarian": False,
+            "is_gluten_free": False,
+            "is_spicy": False,
+            "display_order": 2
+        },
+        
+        # Main Courses
+        {
+            "name": "Grilled Salmon",
+            "description": "Served with lemon butter sauce and seasonal vegetables",
+            "price": Decimal("22.00"),
+            "category": "Main Courses",
+            "is_vegetarian": False,
+            "is_gluten_free": True,
+            "is_spicy": False,
+            "display_order": 1
+        },
+        {
+            "name": "Ribeye Steak",
+            "description": "12 oz prime cut with garlic mashed potatoes",
+            "price": Decimal("28.00"),
+            "category": "Main Courses",
+            "is_vegetarian": False,
+            "is_gluten_free": False,
+            "is_spicy": False,
+            "display_order": 2
+        },
+        {
+            "name": "Vegetable Risotto",
+            "description": "Creamy Arborio rice with wild mushrooms",
+            "price": Decimal("18.00"),
+            "category": "Main Courses",
+            "is_vegetarian": True,
+            "is_gluten_free": False,
+            "is_spicy": False,
+            "display_order": 3
+        },
+        
+        # Desserts
+        {
+            "name": "Tiramisu",
+            "description": "Classic Italian dessert with mascarpone",
+            "price": Decimal("7.50"),
+            "category": "Desserts",
+            "is_vegetarian": True,
+            "is_gluten_free": False,
+            "is_spicy": False,
+            "display_order": 1
+        },
+        {
+            "name": "Cheesecake",
+            "description": "Creamy cheesecake with berry compote",
+            "price": Decimal("7.00"),
+            "category": "Desserts",
+            "is_vegetarian": True,
+            "is_gluten_free": False,
+            "is_spicy": False,
+            "display_order": 2
+        },
+        
+        # Beverages
+        {
+            "name": "Red Wine (Glass)",
+            "description": "A selection of Italian reds",
+            "price": Decimal("10.00"),
+            "category": "Beverages",
+            "is_vegetarian": True,
+            "is_gluten_free": True,
+            "is_spicy": False,
+            "display_order": 1
+        },
+        {
+            "name": "White Wine (Glass)",
+            "description": "Crisp and refreshing",
+            "price": Decimal("9.00"),
+            "category": "Beverages",
+            "is_vegetarian": True,
+            "is_gluten_free": True,
+            "is_spicy": False,
+            "display_order": 2
+        },
+        {
+            "name": "Craft Beer",
+            "description": "Local artisan brews",
+            "price": Decimal("6.00"),
+            "category": "Beverages",
+            "is_vegetarian": True,
+            "is_gluten_free": False,
+            "is_spicy": False,
+            "display_order": 3
+        },
+        {
+            "name": "Espresso",
+            "description": "Strong and aromatic",
+            "price": Decimal("3.00"),
+            "category": "Beverages",
+            "is_vegetarian": True,
+            "is_gluten_free": True,
+            "is_spicy": False,
+            "display_order": 4
+        }
+    ]
+    
+    # Create menu items
+    for item_data in menu_items_data:
+        try:
+            category_name = item_data.pop("category")
+            category = categories.get(category_name)
+            
+            if not category:
+                print(f"⚠️  Category '{category_name}' not found, skipping item '{item_data['name']}'")
+                continue
+            
+            existing_item = MenuItem.query.filter_by(
+                name=item_data["name"],
+                category_id=category.id
+            ).first()
+            
+            if not existing_item:
+                item_data["category_id"] = category.id
+                menu_item = MenuItem(**item_data)
+                db.session.add(menu_item)
+                print(f"✅ Created menu item: {item_data['name']}")
+            else:
+                print(f"ℹ️  Menu item already exists: {item_data['name']}")
+        except Exception as e:
+            print(f"⚠️  Error creating menu item {item_data['name']}: {e}")
+    
+    try:
+        db.session.commit()
+        print("✅ Menu items setup completed!")
+    except Exception as e:
+        print(f"⚠️  Error committing menu items: {e}")
+        db.session.rollback()
+
 def setup_database_robust():
     """Robust database setup that handles all scenarios"""
     
@@ -233,7 +547,10 @@ def setup_database_robust():
             print("\n🔄 Setting up demo data...")
             ensure_demo_users()
             ensure_demo_categories()
+            ensure_demo_menu_items()
             ensure_demo_testimonials()
+            ensure_demo_awards()
+            ensure_demo_gallery_images()
             ensure_demo_reservations()
             
             # Final status report
@@ -241,7 +558,9 @@ def setup_database_robust():
             try:
                 print(f"   • Users: {User.query.count()}")
                 print(f"   • Menu Categories: {MenuCategory.query.count()}")
+                print(f"   • Menu Items: {MenuItem.query.count()}")
                 print(f"   • Testimonials: {Testimonial.query.count()}")
+                print(f"   • Awards: {Award.query.count()}")
                 print(f"   • Reservations: {Reservation.query.count()}")
                 print(f"   • Gallery Images: {GalleryImage.query.count()}")
             except Exception as e:
