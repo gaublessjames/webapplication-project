@@ -71,10 +71,10 @@ def ensure_demo_users():
 def ensure_demo_categories():
     """Ensure demo menu categories exist"""
     categories = [
-        {"name": "Appetizers", "description": "Start your meal with our delicious appetizers", "icon": "🍽️"},
-        {"name": "Main Courses", "description": "Our signature main dishes", "icon": "🥘"},
+        {"name": "Starters", "description": "Fresh beginnings with our delicious appetizers", "icon": "🥗"},
+        {"name": "Main Courses", "description": "Our signature main dishes", "icon": "🍽️"},
         {"name": "Desserts", "description": "Sweet endings to your meal", "icon": "🍰"},
-        {"name": "Beverages", "description": "Refreshing drinks and cocktails", "icon": "🍹"},
+        {"name": "Beverages", "description": "Refreshing drinks and cocktails", "icon": "🍷"},
     ]
     
     for cat_info in categories:
@@ -148,6 +148,64 @@ def ensure_demo_testimonials():
         print(f"⚠️  Error committing testimonials: {e}")
         db.session.rollback()
 
+def ensure_demo_reservations():
+    """Ensure demo reservations exist"""
+    from datetime import datetime, timedelta
+    import random
+    
+    # Get existing users
+    users = User.query.all()
+    if not users:
+        print("⚠️  No users found, skipping reservations")
+        return
+    
+    # Create sample reservations for the next 30 days
+    base_date = datetime.now().date()
+    reservation_data = []
+    
+    for i in range(20):
+        date = base_date + timedelta(days=random.randint(1, 30))
+        time_slots = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"]
+        time = datetime.strptime(random.choice(time_slots), "%H:%M").time()
+        
+        reservation_data.append({
+            "name": f"Guest {i+1}",
+            "email": f"guest{i+1}@email.com",
+            "phone": f"+1-555-{1000+i:04d}",
+            "date": date,
+            "time": time,
+            "party_size": random.randint(2, 8),
+            "special_requests": random.choice([None, "Window seat please", "Anniversary celebration", "Gluten-free options needed"]),
+            "status": random.choice(["pending", "confirmed", "confirmed", "confirmed"]),  # More confirmed than pending
+            "table_number": random.randint(1, 20),
+            "user_id": random.choice(users).id if random.random() > 0.5 else None
+        })
+    
+    for res_data in reservation_data:
+        try:
+            existing = Reservation.query.filter_by(
+                name=res_data["name"],
+                email=res_data["email"],
+                date=res_data["date"],
+                time=res_data["time"]
+            ).first()
+            
+            if not existing:
+                reservation = Reservation(**res_data)
+                db.session.add(reservation)
+                print(f"✅ Created reservation for {res_data['name']} on {res_data['date']}")
+            else:
+                print(f"ℹ️  Reservation already exists for {res_data['name']}")
+        except Exception as e:
+            print(f"⚠️  Error creating reservation for {res_data['name']}: {e}")
+    
+    try:
+        db.session.commit()
+        print("✅ Reservations setup completed!")
+    except Exception as e:
+        print(f"⚠️  Error committing reservations: {e}")
+        db.session.rollback()
+
 def setup_database_robust():
     """Robust database setup that handles all scenarios"""
     
@@ -176,6 +234,7 @@ def setup_database_robust():
             ensure_demo_users()
             ensure_demo_categories()
             ensure_demo_testimonials()
+            ensure_demo_reservations()
             
             # Final status report
             print("\n📋 Final Database Summary:")

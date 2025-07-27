@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,11 +42,11 @@ function getTimeSlotsForDate(date: Date | undefined) {
   if (!date) return allTimeSlots;
   const day = date.getDay(); // 0 = Sunday
   if (day === 0) {
-    // Sunday: 5:00 PM – 9:00 PM
-    return allTimeSlots.filter(t => t >= "17:00" && t <= "21:00");
+    // Sunday: 5:00 PM – 9:00 PM (last reservation at 8:30 PM)
+    return allTimeSlots.filter(t => t >= "17:00" && t <= "20:30");
   }
-  // Mon-Sat: 5:00 PM – 11:00 PM
-  return allTimeSlots;
+  // Monday–Saturday: 5:00 PM – 11:00 PM (last reservation at 10:30 PM)
+  return allTimeSlots.filter(t => t >= "17:00" && t <= "22:30");
 }
 
 type UserReservationFormProps = {
@@ -59,18 +59,45 @@ const UserReservationForm: React.FC<UserReservationFormProps> = ({ onSuccess }) 
   const { user, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tablesRemaining, setTablesRemaining] = useState<number | null>(null);
+  const [savedFormData, setSavedFormData] = useState<ReservationFormData | null>(null);
 
   const form = useForm<ReservationFormData>({
     resolver: zodResolver(reservationSchema),
     defaultValues: {
-      name: user?.email ? (profile?.full_name || user.email.split('@')[0]) : '',
-      email: user?.email || '',
-      newsletterSignup: false,
+      name: savedFormData?.name || '',
+      email: savedFormData?.email || '',
+      phone: savedFormData?.phone || '',
+      date: savedFormData?.date || new Date(),
+      time: savedFormData?.time || '19:00',
+      guests: savedFormData?.guests || 2,
+      newsletterSignup: savedFormData?.newsletterSignup || false,
     },
   });
 
+  // Ensure the selected time is valid for the current date
+  const currentDate = form.watch('date');
+  const availableTimeSlots = getTimeSlotsForDate(currentDate);
+  const currentTime = form.watch('time');
+  
+  // If current time is not in available slots, reset to first available slot
+  React.useEffect(() => {
+    if (currentDate && currentTime && !availableTimeSlots.includes(currentTime)) {
+      form.setValue('time', availableTimeSlots[0] || '19:00');
+    }
+  }, [currentDate, currentTime, availableTimeSlots, form]);
+
+  // Update form with user data when available
+  useEffect(() => {
+    if (user && !savedFormData) {
+      form.setValue('name', profile?.full_name || user.email.split('@')[0]);
+      form.setValue('email', user.email);
+    }
+  }, [user, profile, savedFormData, form]);
+
   const onSubmit = async (data: ReservationFormData) => {
     setIsSubmitting(true);
+    // Save form data for potential retry
+    setSavedFormData(data);
     try {
       // First, create or get customer
       let customerId;
@@ -84,19 +111,22 @@ const UserReservationForm: React.FC<UserReservationFormProps> = ({ onSuccess }) 
           phone: data.phone || null,
           newsletter_signup: data.newsletterSignup,
         });
-        customerId = upsertRes.customer?.id;
+        if (upsertRes.error) {
+          throw new Error(`Customer creation failed: ${upsertRes.error}`);
+        }
+        customerId = upsertRes.id; // Use the returned customer ID directly
       }
       if (!customerId) throw new Error('Could not create or find customer');
 
-      // Create reservation
+      // Create reservation - send customer details directly (backend will handle customer creation/lookup)
       const reservationData: any = {
-        customer_id: customerId,
-        reservation_date: format(data.date, 'yyyy-MM-dd'),
-        reservation_time: data.time,
-        number_of_guests: data.guests,
         name: data.name,
         email: data.email,
         phone: data.phone || '',
+        date: format(data.date, 'yyyy-MM-dd'),
+        time: data.time,
+        party_size: data.guests,
+        newsletter_signup: data.newsletterSignup
       };
       const reservationRes = await createReservation(reservationData);
       if (reservationRes.error) throw new Error(reservationRes.error);
@@ -119,6 +149,10 @@ const UserReservationForm: React.FC<UserReservationFormProps> = ({ onSuccess }) 
         description: error.message || 'There was an error processing your reservation. Please try again.',
         variant: 'destructive',
       });
+      
+      // Preserve form data for retry - don't reset form
+      setTablesRemaining(null);
+      // Keep savedFormData so form stays populated
     } finally {
       setIsSubmitting(false);
     }
@@ -131,7 +165,7 @@ const UserReservationForm: React.FC<UserReservationFormProps> = ({ onSuccess }) 
           <CalendarIcon className="w-8 h-8 text-primary-600" />
         </div>
         <h2 className="text-2xl font-bold text-primary-700 mb-2">Book a Table as a Member</h2>
-        <p className="text-gray-600">Welcome back! Your name and email are pre-filled. Just pick your date, time, and party size.</p>
+                        <p className="text-gray-600">Welcome back! Your name and email are pre-filled. Just pick your date, time, and number of guests.</p>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-white rounded-xl p-6 shadow-sm border border-gray-100">

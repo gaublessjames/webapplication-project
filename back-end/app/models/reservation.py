@@ -12,9 +12,7 @@ class Reservation(db.Model):
     __tablename__ = 'reservations'
     
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(120), nullable=False)
-    phone = db.Column(db.String(20), nullable=False)
+    customer_id = db.Column(UUID(as_uuid=True), db.ForeignKey('customers.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
     time = db.Column(db.Time, nullable=False)
     party_size = db.Column(db.Integer, nullable=False)
@@ -25,12 +23,14 @@ class Reservation(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'), nullable=True)
     
+    # Relationship to Customer
+    customer = db.relationship('Customer', backref='reservations')
+    
     def to_dict(self):
         return {
             'id': str(self.id),
-            'name': self.name,
-            'email': self.email,
-            'phone': self.phone,
+            'customer_id': str(self.customer_id),
+            'customer': self.customer.to_dict() if self.customer else None,
             'date': self.date.isoformat() if self.date else None,
             'time': self.time.strftime('%H:%M') if self.time else None,
             'party_size': self.party_size,

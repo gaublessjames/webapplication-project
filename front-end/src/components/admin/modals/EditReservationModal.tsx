@@ -57,7 +57,7 @@ export default function EditReservationModal({
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label>Party Size</Label>
+                              <Label>Number of Guests</Label>
               <Input
                 type="number"
                 value={editForm.party_size || editForm.number_of_guests || ''}

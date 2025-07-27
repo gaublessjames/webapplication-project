@@ -13,6 +13,7 @@ from .award import Award
 from .customer import Customer
 from .profile import Profile
 from .gallery_image import GalleryImage
+from .blacklisted_token import BlacklistedToken
 
 __all__ = [
     'User',
@@ -25,5 +26,6 @@ __all__ = [
     'Award',
     'Customer',
     'Profile',
-    'GalleryImage'
+    'GalleryImage',
+    'BlacklistedToken'
 ]

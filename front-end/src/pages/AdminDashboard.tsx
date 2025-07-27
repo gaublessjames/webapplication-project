@@ -17,7 +17,6 @@ import {
   AwardsManagement,
   EditReservationModal,
   CancelReservationModal,
-  TestimonialModal,
   AwardModal,
   MenuCategoryModal,
   MenuItemModal,
@@ -46,8 +45,21 @@ import {
 const ADMIN_EMAILS = ["admin@cafefausse.com"];
 
 export default function AdminDashboard() {
-  const { user, loading, role, signOut } = useAuth();
+  const { user, loading, role, signOut: authSignOut } = useAuth();
   const { toast } = useToast();
+
+  // Custom signOut handler for admin dashboard
+  const handleSignOut = async () => {
+    try {
+      await authSignOut();
+      // Explicitly redirect to home page for admin
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error signing out:', error);
+      // Even if signOut fails, redirect to home
+      window.location.href = '/';
+    }
+  };
   
   // State management
   const [activeTab, setActiveTab] = useState("overview");
@@ -74,15 +86,7 @@ export default function AdminDashboard() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [testimonialsLoading, setTestimonialsLoading] = useState(false);
   const [testimonialError, setTestimonialError] = useState("");
-  const [showTestimonialModal, setShowTestimonialModal] = useState(false);
-  const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
-  const [testimonialForm, setTestimonialForm] = useState<TestimonialForm>({ 
-    title: '', 
-    comment: '', 
-    rating: 5, 
-    customer_name: '', 
-    is_approved: false 
-  });
+
   
   // Awards
   const [awards, setAwards] = useState<Award[]>([]);
@@ -164,7 +168,8 @@ export default function AdminDashboard() {
     createGalleryImage, 
     updateGalleryImage, 
     deleteGalleryImage,
-    updateTestimonial
+    updateTestimonial,
+    createTestimonial
   } = useApi();
 
   // Delayed loading states to prevent flickering
@@ -253,14 +258,22 @@ export default function AdminDashboard() {
     setFetching(true);
     try {
       const response = await getAllReservationsWithCustomers(currentPage);
+      
       if (response.error) {
         setError("Failed to fetch reservations.");
       } else {
-        if (Array.isArray(response.reservations)) {
+        // Handle new paginated response format
+        if (response.reservations && Array.isArray(response.reservations)) {
           setReservations(response.reservations);
           setCurrentPage(response.current_page || 1);
           setTotalPages(response.pages || 1);
           setTotalReservations(response.total || response.reservations.length);
+        } else if (Array.isArray(response)) {
+          // Handle old format (fallback)
+          setReservations(response);
+          setCurrentPage(1);
+          setTotalPages(1);
+          setTotalReservations(response.length);
         } else {
           setReservations([]);
           setCurrentPage(1);
@@ -375,18 +388,15 @@ export default function AdminDashboard() {
     if (!editReservation || !editForm) return;
     setEditLoading(true);
     try {
-      await updateReservation(editReservation.id, editForm);
+      const updatedReservation = await updateReservation(editReservation.id, editForm);
       setReservations(reservations.map(r => r.id === editReservation.id ? {
         ...r,
-        date: editForm.date,
-        time: editForm.time,
-        party_size: parseInt(editForm.party_size) || r.party_size,
-        status: editForm.status
+        ...updatedReservation
       } : r));
       setShowEditModal(false);
       setEditReservation(null);
       setEditForm(null);
-      toast({ title: 'Reservation updated' });
+      toast({ title: 'Reservation updated', description: 'The reservation has been updated successfully.' });
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update reservation';
       toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
@@ -398,7 +408,7 @@ export default function AdminDashboard() {
   // Export to CSV
   const exportCSV = () => {
     const headers = [
-      'Date', 'Time', 'Guests', 'Table', 'Status', 'Name', 'Email'
+      'Date', 'Time', 'Number of Guests', 'Table', 'Status', 'Name', 'Email'
     ];
     const rows = reservations.filter(r => {
       const matchDate = filter.date ? r.reservation_date === filter.date || r.date === filter.date : true;
@@ -410,8 +420,8 @@ export default function AdminDashboard() {
       r.party_size,
       r.table_number,
       r.status,
-      r.customers?.name || r.name || '-',
-      r.customers?.email || r.email || '-'
+      r.customer?.name || r.name || '-',
+      r.customer?.email || r.email || '-'
     ]);
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -424,32 +434,7 @@ export default function AdminDashboard() {
   };
 
   // Testimonial handlers
-  const handleEditTestimonial = (testimonial: Testimonial) => {
-    setEditingTestimonial(testimonial);
-    setTestimonialForm({
-      title: testimonial.title || '',
-      comment: testimonial.comment || '',
-      rating: testimonial.rating || 5,
-      customer_name: testimonial.customer_name || '',
-      is_approved: testimonial.is_approved || false,
-    });
-    setShowTestimonialModal(true);
-  };
 
-  const handleTestimonialSubmit = async () => {
-    try {
-      if (editingTestimonial) {
-        await updateTestimonial(editingTestimonial.id, testimonialForm);
-        setTestimonials((prev: Testimonial[]) => prev.map(t => t.id === editingTestimonial.id ? { ...t, ...testimonialForm } : t));
-        toast({ title: 'Testimonial updated', description: 'The testimonial has been updated.' });
-      }
-      setShowTestimonialModal(false);
-      setEditingTestimonial(null);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update testimonial';
-      toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
-    }
-  };
 
   // Award handlers
   const handleEditAward = (award: Award) => {
@@ -468,15 +453,17 @@ export default function AdminDashboard() {
   const handleAwardSubmit = async () => {
     try {
       if (editingAward) {
-        await updateAward(editingAward.id, awardForm);
-        setAwards((prev: Award[]) => prev.map(a => a.id === editingAward.id ? { ...a, ...awardForm } : a));
+        const updatedAward = await updateAward(editingAward.id, awardForm);
+        setAwards((prev: Award[]) => prev.map(a => a.id === editingAward.id ? { ...a, ...updatedAward } : a));
         toast({ title: 'Award updated', description: 'The award has been updated.' });
       } else {
-        await createAward(awardForm);
-        // Optionally reload awards
+        const newAward = await createAward(awardForm);
+        setAwards((prev: Award[]) => [...prev, newAward]);
+        toast({ title: 'Award added', description: 'The award has been added.' });
       }
       setShowAwardModal(false);
       setEditingAward(null);
+      setAwardForm({ name: '', description: '', year: '', category: '', is_featured: false, display_order: 1 });
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save award';
       toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
@@ -499,8 +486,14 @@ export default function AdminDashboard() {
   const handleMenuCategorySubmit = async () => {
     try {
       if (editingMenuCategory) {
-        await updateMenuCategory(editingMenuCategory.id, menuCategoryForm);
-        setMenuCategories((prev: MenuCategory[]) => prev.map(c => c.id === editingMenuCategory.id ? { ...c, ...menuCategoryForm } : c));
+        const updatedCategory = await updateMenuCategory(editingMenuCategory.id, menuCategoryForm);
+        setMenuCategories((prev: MenuCategory[]) => 
+          prev.map(c => c.id === editingMenuCategory.id ? { ...c, ...updatedCategory } : c)
+        );
+        // Also update the menuWithItems state to reflect category changes
+        setMenuWithItems((prev: MenuWithItems[]) => 
+          prev.map(cat => cat.id === editingMenuCategory.id ? { ...cat, ...updatedCategory } : cat)
+        );
         toast({ title: 'Category updated', description: 'The category has been updated.' });
       } else {
         const newCategory = await createMenuCategory(menuCategoryForm);
@@ -533,8 +526,15 @@ export default function AdminDashboard() {
   const handleMenuItemSubmit = async () => {
     try {
       if (editingMenuItem) {
-        await updateMenuItem(editingMenuItem.id, menuItemForm);
-        setMenuWithItems((prev: MenuWithItems[]) => prev.map(i => i.id === editingMenuItem.id ? { ...i, ...menuItemForm } : i));
+        const updatedItem = await updateMenuItem(editingMenuItem.id, menuItemForm);
+        setMenuWithItems((prev: MenuWithItems[]) => 
+          prev.map(category => ({
+            ...category,
+            items: category.items?.map(item => 
+              item.id === editingMenuItem.id ? { ...item, ...updatedItem } : item
+            ) || []
+          }))
+        );
         toast({ title: 'Menu item updated', description: 'The menu item has been updated.' });
       } else {
         const newItem = await createMenuItem(menuItemForm);
@@ -566,13 +566,27 @@ export default function AdminDashboard() {
     );
   }
 
+  // Debug authentication state
+  console.log('🔍 AdminDashboard Auth State:', {
+    loading,
+    user: user?.email,
+    role,
+    jwt: localStorage.getItem('jwt') ? 'present' : 'missing'
+  });
+
   if (!user || role !== 'admin') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Access Denied</h2>
-          <p className="text-slate-600">You don't have permission to access the admin dashboard.</p>
+          <p className="text-slate-600 mb-4">You don't have permission to access the admin dashboard.</p>
+          <div className="text-sm text-slate-500 space-y-1">
+            <p>Loading: {loading.toString()}</p>
+            <p>User: {user?.email || 'null'}</p>
+            <p>Role: {role || 'null'}</p>
+            <p>JWT Token: {localStorage.getItem('jwt') ? 'Present' : 'Missing'}</p>
+          </div>
         </div>
       </div>
     );
@@ -607,7 +621,7 @@ export default function AdminDashboard() {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         userEmail={user.email}
-        onSignOut={signOut}
+        onSignOut={handleSignOut}
       />
 
       {/* Main Content */}
@@ -667,7 +681,6 @@ export default function AdminDashboard() {
               testimonials={testimonials}
               loading={delayedTestimonialsLoading}
               error={testimonialError}
-              onEdit={handleEditTestimonial}
               onApprove={async (testimonialId) => {
                 try {
                   await approveTestimonial(testimonialId, true);
@@ -741,14 +754,7 @@ export default function AdminDashboard() {
         error={cancelError}
       />
 
-      <TestimonialModal
-        open={showTestimonialModal}
-        onOpenChange={setShowTestimonialModal}
-        testimonial={editingTestimonial}
-        form={testimonialForm}
-        setForm={setTestimonialForm}
-        onSubmit={handleTestimonialSubmit}
-      />
+
 
       <AwardModal
         open={showAwardModal}

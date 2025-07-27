@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -30,6 +30,7 @@ const reservationSchema = z.object({
   }),
   guests: z.number().min(1, "Must have at least 1 guest").max(8, "Maximum 8 guests allowed"),
   newsletterSignup: z.boolean().default(false),
+  special_requests: z.string().optional(),
 });
 
 type ReservationFormData = z.infer<typeof reservationSchema>;
@@ -43,11 +44,11 @@ function getTimeSlotsForDate(date: Date | undefined) {
   if (!date) return allTimeSlots;
   const day = date.getDay(); // 0 = Sunday
   if (day === 0) {
-    // Sunday: 5:00 PM – 9:00 PM
-    return allTimeSlots.filter(t => t >= "17:00" && t <= "21:00");
+    // Sunday: 5:00 PM – 9:00 PM (last reservation at 8:30 PM)
+    return allTimeSlots.filter(t => t >= "17:00" && t <= "20:30");
   }
-  // Mon-Sat: 5:00 PM – 11:00 PM
-  return allTimeSlots;
+  // Monday–Saturday: 5:00 PM – 11:00 PM (last reservation at 10:30 PM)
+  return allTimeSlots.filter(t => t >= "17:00" && t <= "22:30");
 }
 
 const ReservationForm = () => {
@@ -58,18 +59,46 @@ const ReservationForm = () => {
   const [reservationDetails, setReservationDetails] = useState<any | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [tablesRemaining, setTablesRemaining] = useState<number | null>(null);
+  const [savedFormData, setSavedFormData] = useState<ReservationFormData | null>(null);
 
   const form = useForm<ReservationFormData>({
     resolver: zodResolver(reservationSchema),
     defaultValues: {
-      name: user?.email ? (profile?.full_name || user.email.split('@')[0]) : '',
-      email: user?.email || '',
-      newsletterSignup: false,
+      name: savedFormData?.name || '',
+      email: savedFormData?.email || '',
+      phone: savedFormData?.phone || '',
+      date: savedFormData?.date || new Date(),
+      time: savedFormData?.time || '19:00',
+      guests: savedFormData?.guests || 2,
+      newsletterSignup: savedFormData?.newsletterSignup || false,
+      special_requests: savedFormData?.special_requests || '',
     },
   });
 
+  // Ensure the selected time is valid for the current date
+  const currentDate = form.watch('date');
+  const availableTimeSlots = getTimeSlotsForDate(currentDate);
+  const currentTime = form.watch('time');
+  
+  // If current time is not in available slots, reset to first available slot
+  React.useEffect(() => {
+    if (currentDate && currentTime && !availableTimeSlots.includes(currentTime)) {
+      form.setValue('time', availableTimeSlots[0] || '19:00');
+    }
+  }, [currentDate, currentTime, availableTimeSlots, form]);
+
+  // Update form with user data when available
+  useEffect(() => {
+    if (user && !savedFormData) {
+      form.setValue('name', profile?.full_name || user.email.split('@')[0]);
+      form.setValue('email', user.email);
+    }
+  }, [user, profile, savedFormData, form]);
+
   const onSubmit = async (data: ReservationFormData) => {
     setIsSubmitting(true);
+    // Save form data for potential retry
+    setSavedFormData(data);
     try {
       // First, create or get customer
       let customerId;
@@ -83,20 +112,23 @@ const ReservationForm = () => {
           phone: data.phone || null,
           newsletter_signup: data.newsletterSignup,
         });
-        customerId = upsertRes.customer?.id;
+        if (upsertRes.error) {
+          throw new Error(`Customer creation failed: ${upsertRes.error}`);
+        }
+        customerId = upsertRes.id; // Use the returned customer ID directly
       }
       if (!customerId) throw new Error('Could not create or find customer');
 
-      // Create reservation
+      // Create reservation - send customer details directly (backend will handle customer creation/lookup)
       const reservationData: any = {
-        customer_id: customerId,
-        reservation_date: format(data.date, 'yyyy-MM-dd'),
-        reservation_time: data.time,
-        number_of_guests: data.guests,
         name: data.name,
         email: data.email,
         phone: data.phone || '',
-        // Add table_number, status, etc. as needed
+        date: format(data.date, 'yyyy-MM-dd'),
+        time: data.time,
+        party_size: data.guests,
+        special_requests: data.special_requests,
+        newsletter_signup: data.newsletterSignup
       };
       const reservationRes = await createReservation(reservationData);
       if (reservationRes.error) throw new Error(reservationRes.error);
@@ -119,6 +151,11 @@ const ReservationForm = () => {
         description: error.message || 'There was an error processing your reservation. Please try again.',
         variant: 'destructive',
       });
+      
+      // Preserve form data for retry - don't reset form
+      setReservationDetails(null);
+      setTablesRemaining(null);
+      // Keep savedFormData so form stays populated
     } finally {
       setIsSubmitting(false);
     }
@@ -180,29 +217,32 @@ const ReservationForm = () => {
     doc.setFontSize(12);
     doc.setTextColor(221, 82, 76);
     doc.text('Restaurant Information', 30, 150);
-    doc.setTextColor(51, 51, 51);
-    doc.text('123 Culinary District, Fine Dining Ave', 30, 158);
-    doc.text('(202) 555-4567', 30, 166);
-    doc.text('Tuesday - Sunday, 5:00 PM - 11:00 PM', 30, 174);
-    doc.text('Dress Code: Smart Casual', 30, 182);
+      doc.setTextColor(51, 51, 51);
+  doc.text('123 Gourmet Avenue, Culinary District', 30, 158);
+  doc.text('(555) 123-4567', 30, 166);
+  doc.text('Monday - Saturday: 5:00 PM - 11:00 PM', 30, 174);
+  doc.text('Sunday: 5:00 PM - 9:00 PM', 30, 182);
+  doc.text('Dress Code: Smart Casual', 30, 190);
     doc.setTextColor(221, 82, 76);
     doc.text('Important Notes', 30, 200);
-    doc.setTextColor(51, 51, 51);
-    doc.text('- Please arrive 15 minutes before your reservation time', 30, 208);
-    doc.text('- Cancellations must be made 24 hours in advance', 30, 216);
-    doc.text('- For parties of 8 or more, a 20% gratuity will be added', 30, 224);
-    doc.text('- We accommodate dietary restrictions with advance notice', 30, 232);
+      doc.setTextColor(51, 51, 51);
+  doc.text('- Please arrive 15 minutes before your reservation time', 30, 208);
+  doc.text('- Cancellations must be made 24 hours in advance', 30, 216);
+  doc.text('- Maximum 8 guests per reservation', 30, 224);
+  doc.text('- Special dietary requests accommodated', 30, 232);
+  doc.text('- Founded in 2010 by Chef Marie Dubois', 30, 240);
     doc.setFontSize(10);
     doc.setTextColor(102, 102, 102);
-    doc.text(`Receipt generated on ${new Date().toLocaleDateString()}`, 30, 250);
-    doc.text('We look forward to welcoming you to Café Fausse!', 30, 256);
-    doc.text('"Where every meal is a masterpiece"', 30, 262);
-    // --- Add links section ---
+      doc.text(`Receipt generated on ${new Date().toLocaleDateString()}`, 30, 248);
+  doc.text('We look forward to welcoming you to Café Fausse!', 30, 254);
+  doc.text('"Where every meal is a masterpiece"', 30, 260);
+        // --- Add links section ---
     const email = reservationDetails.customerEmail || '';
     const pdfReservationId = reservationDetails.id || reservationDetails.reservationId || '';
-    const cancelUrl = `${window.location.origin}/cancel-reservation/${encodeURIComponent(pdfReservationId)}`;
-    const authUrl = `${window.location.origin}/auth?signup=1&email=${encodeURIComponent(email)}`;
-    let y = 270;
+    const baseUrl = window.location.origin || 'http://localhost:8080';
+    const cancelUrl = `${baseUrl}/cancel-reservation/${encodeURIComponent(pdfReservationId)}`;
+    const authUrl = `${baseUrl}/auth?signup=1&email=${encodeURIComponent(email)}`;
+    let y = 268;
     doc.setFontSize(12);
     doc.setTextColor(221, 82, 76);
     doc.textWithLink('Cancel your reservation', 30, y, { url: cancelUrl });
@@ -214,8 +254,8 @@ const ReservationForm = () => {
   let pdfDetails = null;
   if (reservationDetails) {
     pdfDetails = {
-      customerName: reservationDetails.customerName || reservationDetails.name || '',
-      customerEmail: reservationDetails.customerEmail || reservationDetails.email || '',
+      customerName: reservationDetails.customer?.name || reservationDetails.customerName || reservationDetails.name || '',
+      customerEmail: reservationDetails.customer?.email || reservationDetails.customerEmail || reservationDetails.email || '',
       reservationDate: reservationDetails.reservationDate || reservationDetails.date || reservationDetails.reservation_date || '',
       reservationTime: reservationDetails.reservationTime || reservationDetails.time || reservationDetails.reservation_time || '',
       tableNumber: reservationDetails.tableNumber || reservationDetails.table_number || '',
@@ -262,7 +302,7 @@ const ReservationForm = () => {
                   <CalendarIcon className="w-8 h-8 text-primary-600" />
                 </div>
                 <h2 className="text-2xl font-bold text-primary-700 mb-2">Book a Table as a Member</h2>
-                <p className="text-gray-600">Welcome back! Your name and email are pre-filled. Just pick your date, time, and party size.</p>
+                <p className="text-gray-600">Welcome back! Your name and email are pre-filled. Just pick your date, time, and number of guests.</p>
               </div>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-white rounded-xl p-6 shadow-sm border border-gray-100">

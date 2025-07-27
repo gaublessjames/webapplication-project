@@ -13,10 +13,21 @@ logger = logging.getLogger('cafe_fausse_api')
 
 @customer_bp.route('/', methods=['GET'])
 def get_customers():
-    """Get all customers"""
+    """Get all customers or filter by email"""
     try:
-        customers = Customer.query.order_by(Customer.created_at.desc()).all()
-        return jsonify([c.to_dict() for c in customers]), 200
+        email_filter = request.args.get('email')
+        
+        if email_filter:
+            # Filter by email
+            customer = Customer.query.filter_by(email=email_filter).first()
+            if customer:
+                return jsonify({'customer': customer.to_dict()}), 200
+            else:
+                return jsonify({'customer': None}), 200
+        else:
+            # Get all customers
+            customers = Customer.query.order_by(Customer.created_at.desc()).all()
+            return jsonify([c.to_dict() for c in customers]), 200
     except Exception as e:
         logger.error('Get customers error: %s', str(e))
         return jsonify({'error': 'Failed to get customers'}), 500

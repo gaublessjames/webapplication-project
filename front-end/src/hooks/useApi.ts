@@ -46,14 +46,36 @@ export function useApi() {
 
   // Example: get reservations (admin)
   const getReservations = async () => {
-    const res = await fetch(`${LOCAL_API_URL}/reservations`);
+    const res = await fetch(`${LOCAL_API_URL}/reservations/`);
     if (!res.ok) throw new Error(await res.text());
     return await res.json();
   };
 
   // Get all reservations with customer details (admin)
   const getAllReservationsWithCustomers = async (page = 1, per_page = 10) => {
-    const token = localStorage.getItem('jwt');
+    let token = localStorage.getItem('jwt');
+    
+    // If no token but admin bypass is enabled, try to get a token
+    if (!token && localStorage.getItem('admin_bypass') === 'true') {
+      try {
+        const loginRes = await fetch(`${LOCAL_API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: 'admin@cafefausse.com',
+            password: 'demo123456'
+          }),
+        });
+        if (loginRes.ok) {
+          const loginData = await loginRes.json();
+          token = loginData.token;
+          localStorage.setItem('jwt', token);
+        }
+      } catch (error) {
+        console.error('Failed to get admin token:', error);
+      }
+    }
+    
     const res = await fetch(`${LOCAL_API_URL}/admin/reservations?page=${page}&per_page=${per_page}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -64,7 +86,7 @@ export function useApi() {
   // Update reservation (admin)
   const updateReservation = async (id: string, data: any) => {
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${LOCAL_API_URL}/admin/reservations/${id}`, {
+    const res = await fetch(`${LOCAL_API_URL}/reservations/${id}`, {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',
@@ -73,7 +95,8 @@ export function useApi() {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error(await res.text());
-    return await res.json();
+    const response = await res.json();
+    return response.reservation || response; // Handle both formats
   };
 
   // Get reservations for a specific user by email
@@ -95,32 +118,65 @@ export function useApi() {
 
   // Get customer by email
   const getCustomerByEmail = async (email: string) => {
-    const res = await fetch(`${LOCAL_API_URL}/customers?email=${encodeURIComponent(email)}`);
+    const res = await fetch(`${LOCAL_API_URL}/customers/?email=${encodeURIComponent(email)}`);
     return await res.json();
   };
 
   // Upsert customer (for newsletter signup)
   const upsertCustomer = async (customer: any) => {
-    const res = await fetch(`${LOCAL_API_URL}/customers/upsert`, {
+    console.log('Creating customer with data:', customer);
+    
+    const res = await fetch(`${LOCAL_API_URL}/customers/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(customer),
     });
-    return await res.json();
+    
+    const data = await res.json();
+    console.log('Customer creation response:', data);
+    
+    if (!res.ok) {
+      throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    return data;
   };
 
   // Create reservation
   const createReservation = async (reservation: any) => {
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${LOCAL_API_URL}/reservations`, {
+    
+    // Map frontend field names to backend field names
+    const mappedReservation = {
+      name: reservation.name,
+      email: reservation.email,
+      phone: reservation.phone,
+      date: reservation.reservation_date || reservation.date,
+      time: reservation.reservation_time || reservation.time,
+      party_size: reservation.number_of_guests || reservation.party_size,
+      special_requests: reservation.special_requests,
+      customer_id: reservation.customer_id
+    };
+    
+    console.log('Creating reservation with data:', mappedReservation);
+    
+    const res = await fetch(`${LOCAL_API_URL}/reservations/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify(reservation),
+      body: JSON.stringify(mappedReservation),
     });
-    return await res.json();
+    
+    const data = await res.json();
+    console.log('Reservation creation response:', data);
+    
+    if (!res.ok) {
+      throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    return data;
   };
 
   // Cancel reservation
@@ -178,8 +234,8 @@ export function useApi() {
   const updateTestimonial = async (id: string, data: any) => {
     const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/admin/testimonials/${id}`, {
-      method: 'PATCH',
+    const res = await fetch(`${API_BASE_URL}/testimonials/${id}`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
@@ -190,10 +246,26 @@ export function useApi() {
     return await res.json();
   };
 
+  // Admin: Create a new testimonial
+  const createTestimonial = async (testimonial: any) => {
+    const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
+    const token = localStorage.getItem('jwt');
+    const res = await fetch(`${API_BASE_URL}/testimonials/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(testimonial),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return await res.json();
+  };
+
   // Admin: Get all awards
   const getAllAwards = async () => {
     const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
-    const res = await fetch(`${API_BASE_URL}/awards`);
+    const res = await fetch(`${API_BASE_URL}/awards/`);
     if (!res.ok) throw new Error(await res.text());
     return await res.json();
   };
@@ -202,7 +274,7 @@ export function useApi() {
   const createAward = async (award: any) => {
     const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
     const token = localStorage.getItem('jwt');
-    const res = await fetch(`${API_BASE_URL}/awards`, {
+    const res = await fetch(`${API_BASE_URL}/awards/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -281,9 +353,13 @@ export function useApi() {
   // Admin: Create a new menu item
   const createMenuItem = async (item: any) => {
     const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
+    const token = localStorage.getItem('jwt');
     const res = await fetch(`${API_BASE_URL}/menu/items`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
       credentials: 'include',
       body: JSON.stringify(item),
     });
@@ -294,9 +370,13 @@ export function useApi() {
   // Admin: Update a menu item
   const updateMenuItem = async (id: string, item: any) => {
     const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:5001/api";
+    const token = localStorage.getItem('jwt');
     const res = await fetch(`${API_BASE_URL}/menu/items/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
       credentials: 'include',
       body: JSON.stringify(item),
     });
@@ -374,6 +454,7 @@ export function useApi() {
     getAllTestimonialsAdmin,
     approveTestimonial,
     updateTestimonial,
+    createTestimonial,
     getAllAwards,
     createAward,
     updateAward,

@@ -62,7 +62,7 @@ export default function CustomerDetailsForm({
           <div className="text-sm text-gray-600 space-y-1">
             <p>Date: {bookingData.date.toLocaleDateString()}</p>
             <p>Time: {formatTimeForDisplay(bookingData.time)}</p>
-            <p>Guests: {bookingData.guests}</p>
+                            <p>Number of Guests: {bookingData.guests}</p>
           </div>
         </div>
       )}

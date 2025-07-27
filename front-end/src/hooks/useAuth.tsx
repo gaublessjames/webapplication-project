@@ -24,10 +24,12 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string; user?: User }>;
   profile: any | null;
   role: string | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   setRole: React.Dispatch<React.SetStateAction<string | null>>;
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -65,138 +67,246 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
   const { getCurrentUser } = useApi();
 
-  // Local admin bypass
-  useEffect(() => {
-    setLoading(true);
-    if (localStorage.getItem('admin_bypass') === 'true') {
-      setUser({
-        id: 'admin-bypass',
-        email: 'admin@cafefausse.com',
-        role: 'admin',
-        user_metadata: {},
-        app_metadata: {},
-      });
-      setProfile({
-        created_at: '',
-        full_name: 'Admin',
-        id: 'admin-bypass',
-        phone: null,
-        updated_at: '',
-        user_id: 'admin-bypass',
-        role: 'admin',
-      });
-      setRole('admin');
-      setLoading(false);
-      return;
-    }
-    setLoading(false);
-  }, []);
+  // Helper function to transform backend user data to frontend User interface
+  const transformBackendUser = (backendUser: any): User => {
+    return {
+      id: backendUser.id,
+      email: backendUser.email,
+      role: backendUser.role,
+      created_at: backendUser.created_at,
+      phone: backendUser.phone,
+      user_metadata: {
+        full_name: backendUser.full_name
+      },
+      app_metadata: {
+        role: backendUser.role
+      }
+    };
+  };
 
-  // Check for existing session and set up polling for auth changes
-  useEffect(() => {
-    if (localStorage.getItem('admin_bypass') === 'true') return; // skip API fetch
+  // Unified authentication state management
+  const updateAuthState = (newUser: User | null, newSession: Session | null, newProfile: Profile | null = null) => {
+    setUser(newUser);
+    setSession(newSession);
+    setProfile(newProfile);
     
-    // Check for existing session
+    // Determine role based on user data
+    let detectedRole: string | null = null;
+    if (newUser) {
+      detectedRole = newUser.role || newProfile?.role || null;
+      if (!detectedRole && newUser.email && ADMIN_EMAILS.includes(newUser.email)) {
+        detectedRole = 'admin';
+      }
+      
+
+    }
+    setRole(detectedRole);
+  };
+
+  // Initialize authentication state
+  useEffect(() => {
+    const initializeAuth = async () => {
+      setLoading(true);
+      (window as any).authStartTime = Date.now();
+      
+      try {
+        // Check for existing JWT token and validate it with the backend
+        const token = localStorage.getItem('jwt');
+        
+        if (token) {
+          console.log('🔍 Found JWT token, validating with backend...');
+          
+          // Check session with backend
+          const { data } = await auth.getSession();
+          const currentSession = data.session;
+          
+          if (currentSession?.user) {
+            console.log('✅ Valid session found:', currentSession.user.email);
+            // Transform backend user data to frontend format
+            const frontendUser = transformBackendUser(currentSession.user);
+            updateAuthState(frontendUser, currentSession);
+          } else {
+            console.log('❌ Invalid or expired token, clearing...');
+            localStorage.removeItem('jwt');
+            updateAuthState(null, null);
+          }
+        } else {
+          console.log('🔍 No JWT token found, user not authenticated');
+          updateAuthState(null, null);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        localStorage.removeItem('jwt');
+        updateAuthState(null, null);
+      } finally {
+        // Add a minimum loading time to prevent flickering
+        const minLoadingTime = 500; // 500ms minimum
+        const elapsed = Date.now() - (window as any).authStartTime || 0;
+        const remaining = Math.max(0, minLoadingTime - elapsed);
+        
+        setTimeout(() => {
+          setLoading(false);
+          setInitialized(true);
+        }, remaining);
+      }
+    };
+    
+    initializeAuth();
+  }, []); // Remove getCurrentUser dependency
+
+  // Set up session monitoring (less frequent to avoid conflicts)
+  useEffect(() => {
+    // Only set up monitoring if user is logged in
+    if (!user) return;
+    
     const checkSession = async () => {
       try {
         const { data } = await auth.getSession();
         const currentSession = data.session;
         
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        setRole(currentSession?.user?.role || null);
-        setLoading(false);
+        // Only update if session has actually changed
+        if (!currentSession?.user && user) {
+          // User was logged out
+          console.log('🔍 User session expired, clearing auth state');
+          updateAuthState(null, null);
+        } else if (currentSession?.user?.id !== user?.id) {
+          // Different user logged in
+          const frontendUser = transformBackendUser(currentSession.user);
+          updateAuthState(frontendUser, currentSession);
+        }
       } catch (error) {
         console.error('Error checking session:', error);
-        setSession(null);
-        setUser(null);
-        setRole(null);
-        setLoading(false);
+        // Don't clear state on every error
       }
     };
     
-    // Initial check
-    checkSession();
-    
-    // Set up polling for auth changes (every 30 seconds)
-    const interval = setInterval(checkSession, 30000);
-    
+    // Check session every 2 minutes (less frequent)
+    const interval = setInterval(checkSession, 120000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user?.id]); // Remove getCurrentUser dependency
 
-  // Fetch user profile when user changes
-  useEffect(() => {
-    if (localStorage.getItem('admin_bypass') === 'true') return; // skip API fetch
-    
-    async function fetchProfile() {
-      if (user) {
-        try {
-          const userResponse = await getCurrentUser();
-          // Only set role from profile if user.role is missing
-          if (userResponse && userResponse.profile) {
-            setProfile(userResponse.profile as Profile);
-            if (!user.role && userResponse.profile.role) {
-              setRole(userResponse.profile.role);
-            }
-          } else {
-            setProfile(null);
-            if (!user.role) setRole(null);
-          }
-        } catch (error) {
-          console.error('Error fetching profile:', error);
-          setProfile(null);
-          if (!user.role) setRole(null);
-        }
+  // Force refresh authentication state (useful for debugging)
+  const refreshAuth = async () => {
+    try {
+      const { data } = await auth.getSession();
+      const currentSession = data.session;
+      
+      if (currentSession?.user) {
+        // Transform backend user data to frontend format
+        const frontendUser = transformBackendUser(currentSession.user);
+        updateAuthState(frontendUser, currentSession);
       } else {
-        setProfile(null);
-        setRole(null);
+        updateAuthState(null, null);
       }
+    } catch (error) {
+      console.error('Error refreshing auth:', error);
+      updateAuthState(null, null);
     }
-    
-    fetchProfile();
-  }, [user, getCurrentUser]);
+  };
 
-  // In AuthProvider, after setting user, set role from user.role, user.profile.role, or ADMIN_EMAILS
+  // Global storage event listener for cross-tab synchronization
   useEffect(() => {
-    if (user) {
-      let detectedRole = user.role || null;
-      if (!detectedRole && profile && profile.role) {
-        detectedRole = profile.role;
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'jwt') {
+        console.log('🔄 JWT token changed in another tab:', e.key, e.newValue);
+        // Refresh auth state when JWT token changes in another tab
+        setTimeout(() => {
+          refreshAuth();
+        }, 100);
       }
-      if (!detectedRole && user.email && ADMIN_EMAILS.includes(user.email)) {
-        detectedRole = 'admin';
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [refreshAuth]);
+
+  // Sign in function
+  const signIn = async (email: string, password: string) => {
+    try {
+      console.log('🔧 useAuth signIn called for:', email);
+      
+      const response = await auth.signInWithPassword({ email, password });
+      
+      if (response.error) {
+        console.error('❌ Sign in failed:', response.error.message);
+        return { success: false, error: response.error.message };
       }
-      setRole(detectedRole);
-    } else {
-      setRole(null);
+      
+      if (response.data?.token && response.data?.user) {
+        console.log('✅ Sign in successful, token and user data received');
+        
+        // Transform backend user data to match frontend User interface
+        const frontendUser = transformBackendUser(response.data.user);
+        
+        // Create session object from login response
+        const session = {
+          user: frontendUser,
+          access_token: response.data.token
+        };
+        
+        // Update auth state directly with the transformed user data
+        updateAuthState(frontendUser, session);
+        console.log('✅ Auth state updated with transformed user data:', frontendUser.email);
+        
+        return { success: true, user: frontendUser };
+      } else {
+        console.error('❌ No token or user data received from sign in');
+        return { success: false, error: 'No authentication data received' };
+      }
+      
+    } catch (error) {
+      console.error('❌ Error signing in:', error);
+      return { success: false, error: 'Sign in failed' };
     }
-     
-  }, [user, profile]);
+  };
 
   // Sign out function
   const signOut = async () => {
     try {
-      localStorage.removeItem('admin_bypass');
-      localStorage.removeItem('jwt');
+      console.log('🔧 useAuth signOut called');
       
-      // Clean up any local storage
+      // Call backend logout endpoint to blacklist the token
+      console.log('🌐 Calling backend logout endpoint...');
+      await auth.signOut({ scope: 'global' });
+      console.log('✅ Backend logout completed');
+      
+      // Clear all authentication state
+      updateAuthState(null, null);
+      console.log('✅ Auth state cleared');
+      
+      // Clear JWT token from localStorage
+      localStorage.removeItem('jwt');
+      console.log('✅ JWT token removed from localStorage');
+      
+      // Clean up any other auth-related local storage
       Object.keys(localStorage).forEach((key) => {
         if (key.startsWith('jwt') || key.includes('auth')) {
           localStorage.removeItem(key);
         }
       });
       
-      // Sign out using our API client
-      await auth.signOut({ scope: 'global' });
+      // Redirect all users to the index page after signout
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
       
-      // Force page reload for clean state
-      window.location.href = '/auth';
+      console.log('✅ Sign out completed successfully');
+      
     } catch (error) {
-      console.error('Error signing out:', error);
-      // Force redirect even if signOut fails
-      window.location.href = '/auth';
+      console.error('❌ Error signing out:', error);
+      // Even if API call fails, clear local state
+      updateAuthState(null, null);
+      localStorage.removeItem('jwt');
+      
+      // Redirect all users to the index page after signout (even on error)
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+      
+      console.log('✅ Sign out completed after error');
     }
   };
 
@@ -205,10 +315,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     session,
     loading,
     signOut,
+    signIn,
     profile,
     role,
     setUser,
     setRole,
+    refreshAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

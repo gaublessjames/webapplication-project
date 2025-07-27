@@ -50,4 +50,66 @@ def create_menu_item():
     except Exception as e:
         logger.error('Create menu item error: %s', str(e))
         db.session.rollback()
-        return jsonify({'error': 'Failed to create menu item'}), 500 
+        return jsonify({'error': 'Failed to create menu item'}), 500
+
+@menu_bp.route('/categories/<uuid:category_id>', methods=['PUT'])
+@login_required
+def update_menu_category(category_id):
+    """Update a menu category"""
+    try:
+        category = MenuCategory.query.get_or_404(category_id)
+        data = request.json
+        
+        # Update fields
+        if 'name' in data:
+            category.name = data['name']
+        if 'description' in data:
+            category.description = data['description']
+        if 'display_order' in data:
+            category.display_order = data['display_order']
+        if 'is_active' in data:
+            category.is_active = data['is_active']
+        if 'icon' in data:
+            category.icon = data['icon']
+        
+        db.session.commit()
+        return jsonify(category.to_dict()), 200
+        
+    except Exception as e:
+        logger.error('Update menu category error: %s', str(e))
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update menu category'}), 500
+
+@menu_bp.route('/items/<uuid:item_id>', methods=['PUT'])
+@login_required
+def update_menu_item(item_id):
+    """Update a menu item"""
+    try:
+        item = MenuItem.query.get_or_404(item_id)
+        data = request.json
+        
+        # Update fields
+        if 'name' in data:
+            item.name = data['name']
+        if 'description' in data:
+            item.description = data['description']
+        if 'price' in data:
+            item.price = data['price']
+        if 'category_id' in data:
+            item.category_id = data['category_id']
+        if 'is_vegetarian' in data:
+            item.is_vegetarian = data['is_vegetarian']
+        if 'is_gluten_free' in data:
+            item.is_gluten_free = data['is_gluten_free']
+        if 'is_spicy' in data:
+            item.is_spicy = data['is_spicy']
+        if 'is_active' in data:
+            item.is_active = data['is_active']
+        
+        db.session.commit()
+        return jsonify(item.to_dict()), 200
+        
+    except Exception as e:
+        logger.error('Update menu item error: %s', str(e))
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update menu item'}), 500 

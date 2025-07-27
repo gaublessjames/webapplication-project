@@ -17,6 +17,7 @@ import MyReservations from "./pages/MyReservations";
 import NotFound from "./pages/NotFound";
 import CancelReservation from "./pages/CancelReservation";
 import AdminDashboard from "./pages/AdminDashboard";
+import AuthDebugPanel from "./components/AuthDebugPanel";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ function App() {
           <Route path="/cancel-reservation" element={<CancelReservation />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <AuthDebugPanel />
       </TooltipProvider>
     </QueryClientProvider>
   );

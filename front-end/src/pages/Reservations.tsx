@@ -26,7 +26,7 @@ const Reservations = () => {
               Reserve Your Table
             </h1>
             <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              Experience exceptional dining at Café Fausse. Book your perfect evening with us.
+              Experience exceptional French cuisine at Café Fausse. Book your perfect evening in our elegant, intimate atmosphere.
             </p>
           </div>
         </div>
@@ -59,11 +59,7 @@ const Reservations = () => {
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm text-gray-600">
                   <div className="flex justify-between">
-                    <span>Monday - Thursday</span>
-                    <span>5:00 PM - 10:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Friday - Saturday</span>
+                    <span>Monday - Saturday</span>
                     <span>5:00 PM - 11:00 PM</span>
                   </div>
                   <div className="flex justify-between">
@@ -82,10 +78,20 @@ const Reservations = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm text-gray-600">
-                  <p>(202) 555-4567</p>
-                  <p>For special requests or parties of 12+</p>
+                  <div className="flex items-center">
+                    <Phone className="w-4 h-4 mr-2" />
+                    <span>(555) 123-4567</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Mail className="w-4 h-4 mr-2" />
+                    <span>info@cafefausse.com</span>
+                  </div>
+                  <div className="flex items-center">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    <span>123 Gourmet Avenue, Culinary District</span>
+                  </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    Available during business hours
+                    For special requests or parties of 8+ guests
                   </p>
                 </CardContent>
               </Card>
@@ -95,21 +101,49 @@ const Reservations = () => {
                 <CardHeader className="pb-4">
                   <div className="flex items-center">
                     <CheckCircle className="w-6 h-6 text-primary-600 mr-3" />
-                    <CardTitle className="text-lg">Policies</CardTitle>
+                    <CardTitle className="text-lg">Reservation Policies</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-gray-600">
                   <div className="flex items-start">
                     <Star className="w-4 h-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Advance booking recommended</span>
+                    <span>Advance booking recommended for weekends</span>
                   </div>
                   <div className="flex items-start">
                     <Users className="w-4 h-4 text-primary-500 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Up to 12 guests per reservation</span>
+                    <span>Maximum 8 guests per reservation</span>
                   </div>
                   <div className="flex items-start">
                     <Clock className="w-4 h-4 text-primary-500 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>24-hour cancellation policy</span>
+                    <span>24-hour cancellation notice required</span>
+                  </div>
+                  <div className="flex items-start">
+                    <Heart className="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Special dietary requests accommodated</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* About Café Fausse */}
+              <Card className="shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center">
+                    <Award className="w-6 h-6 text-primary-600 mr-3" />
+                    <CardTitle className="text-lg">About Café Fausse</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-gray-600">
+                  <p>
+                    Fine-dining establishment combining traditional French cuisine with modern culinary techniques. 
+                    Award-winning chefs create unforgettable dining experiences in an elegant, intimate atmosphere.
+                  </p>
+                  <div className="flex items-start">
+                    <Award className="w-4 h-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Multiple culinary excellence awards</span>
+                  </div>
+                  <div className="flex items-start">
+                    <Star className="w-4 h-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Founded in 2010 by Chef Marie Dubois</span>
                   </div>
                 </CardContent>
               </Card>

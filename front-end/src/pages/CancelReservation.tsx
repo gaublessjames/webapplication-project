@@ -151,7 +151,7 @@ const CancelReservation = () => {
                 </div>
                 <div className="flex items-center justify-center space-x-2">
                   <Users className="h-4 w-4 text-primary-600" />
-                  <span><b>Guests:</b> {guests}</span>
+                                      <span><b>Number of Guests:</b> {guests}</span>
                 </div>
                 {table && (
                   <div className="flex items-center justify-center space-x-2">

@@ -13,7 +13,7 @@ export interface Reservation {
   party_size: number;
   table_number: string;
   status: string;
-  customers?: Customer;
+  customer?: Customer;
   reservation_date?: string;
   reservation_time?: string;
   number_of_guests?: number;

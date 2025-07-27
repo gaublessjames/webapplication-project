@@ -19,6 +19,12 @@ interface Reservation {
   table_number: number;
   status: string;
   created_at: string;
+  customer?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+  };
 }
 
 const MyReservations = () => {
@@ -261,8 +267,8 @@ const MyReservations = () => {
                             size="sm"
                             onClick={() => handleDownloadPDF({
                               reservationId: reservation.id,
-                              customerName: user?.email?.split('@')[0] || '',
-                              customerEmail: user?.email || '',
+                              customerName: reservation.customer?.name || user?.email?.split('@')[0] || '',
+                              customerEmail: reservation.customer?.email || user?.email || '',
                               reservationDate: formatDate(reservation.reservation_date),
                               reservationTime: formatTime(reservation.reservation_time),
                               numberOfGuests: reservation.number_of_guests,

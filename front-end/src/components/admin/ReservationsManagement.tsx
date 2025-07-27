@@ -42,7 +42,7 @@ export default function ReservationsManagement({
 }: ReservationsManagementProps) {
   const exportCSV = () => {
     const headers = [
-      'Date', 'Time', 'Guests', 'Table', 'Status', 'Name', 'Email'
+      'Date', 'Time', 'Number of Guests', 'Table', 'Status', 'Name', 'Email'
     ];
     const rows = reservations.filter(r => {
       const matchDate = filter.date ? r.reservation_date === filter.date || r.date === filter.date : true;
@@ -54,8 +54,8 @@ export default function ReservationsManagement({
       r.party_size,
       r.table_number,
       r.status,
-      r.customers?.name || r.name || '-',
-      r.customers?.email || r.email || '-'
+      r.customer?.name || r.name || '-',
+      r.customer?.email || r.email || '-'
     ]);
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -130,7 +130,7 @@ export default function ReservationsManagement({
               <tr className="bg-primary-100 text-primary-700">
                 <th className="px-4 py-2 border">Date</th>
                 <th className="px-4 py-2 border">Time</th>
-                <th className="px-4 py-2 border">Guests</th>
+                <th className="px-4 py-2 border">Number of Guests</th>
                 <th className="px-4 py-2 border">Table</th>
                 <th className="px-4 py-2 border">Status</th>
                 <th className="px-4 py-2 border">Name</th>
@@ -157,8 +157,8 @@ export default function ReservationsManagement({
                     <td className="px-4 py-2 border">{r.party_size}</td>
                     <td className="px-4 py-2 border">{r.table_number}</td>
                     <td className="px-4 py-2 border capitalize">{r.status}</td>
-                    <td className="px-4 py-2 border">{r.customers?.name || r.name || "-"}</td>
-                    <td className="px-4 py-2 border">{r.customers?.email || r.email || "-"}</td>
+                    <td className="px-4 py-2 border">{r.customer?.name || r.name || "-"}</td>
+                    <td className="px-4 py-2 border">{r.customer?.email || r.email || "-"}</td>
                     <td className="px-4 py-2 border flex gap-2">
                       <Button 
                         size="sm" 
@@ -186,8 +186,8 @@ export default function ReservationsManagement({
                         size="sm"
                         onClick={() => handleDownloadPDF({
                           reservationId: r.id,
-                          customerName: r.customers?.name || r.name || '',
-                          customerEmail: r.customers?.email || r.email || '',
+                          customerName: r.customer?.name || r.name || '',
+                          customerEmail: r.customer?.email || r.email || '',
                           reservationDate: r.date || r.reservation_date || '',
                           reservationTime: r.time || r.reservation_time || '',
                           numberOfGuests: r.party_size || r.number_of_guests || 0,

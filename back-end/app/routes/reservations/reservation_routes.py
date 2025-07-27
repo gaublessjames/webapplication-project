@@ -9,7 +9,7 @@ from sqlalchemy import and_, or_
 import logging
 from app.models import Reservation, Customer
 from app.schemas import ReservationSchema
-from app.utils import login_required, validate_date, validate_time, validate_party_size
+from app.utils import login_required, validate_date, validate_time, validate_party_size, validate_business_hours
 from app.extensions import db
 
 reservation_bp = Blueprint('reservations', __name__)
@@ -21,8 +21,14 @@ def create_reservation():
     try:
         data = request.json
         
-        # Validate required fields
-        required_fields = ['name', 'email', 'phone', 'date', 'time', 'party_size']
+        # Validate required fields - support both guest and customer_id scenarios
+        if 'customer_id' in data:
+            # Existing customer making reservation
+            required_fields = ['customer_id', 'date', 'time', 'party_size']
+        else:
+            # Guest making reservation - need customer details
+            required_fields = ['name', 'email', 'phone', 'date', 'time', 'party_size']
+            
         for field in required_fields:
             if not data.get(field):
                 return jsonify({'error': f'{field} is required'}), 400
@@ -36,6 +42,10 @@ def create_reservation():
             
         if not validate_party_size(data['party_size']):
             return jsonify({'error': 'Party size must be between 1 and 20'}), 400
+        
+        # Validate business hours
+        if not validate_business_hours(data['date'], data['time']):
+            return jsonify({'error': 'Reservation time is outside of business hours. Monday–Saturday: 5:00 PM – 11:00 PM; Sunday: 5:00 PM – 9:00 PM'}), 400
         
         # Parse date and time
         reservation_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
@@ -64,17 +74,47 @@ def create_reservation():
         import random
         assigned_table = random.randint(1, 30)
         
+        # Handle customer creation/lookup for guest reservations
+        customer_id = data.get('customer_id')
+        if not customer_id:
+            # Guest reservation - create or find customer
+            from app.models import Customer
+            
+            # Check if customer already exists
+            existing_customer = Customer.query.filter_by(email=data['email']).first()
+            if existing_customer:
+                customer_id = existing_customer.id
+            else:
+                # Create new customer
+                customer = Customer(
+                    name=data['name'],
+                    email=data['email'],
+                    phone=data['phone'],
+                    newsletter_signup=data.get('newsletter_signup', False)
+                )
+                db.session.add(customer)
+                db.session.flush()  # Get the ID without committing
+                customer_id = customer.id
+        
+        # Extract user_id from token if present
+        user_id = None
+        auth_header = request.headers.get('Authorization', None)
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            from app.utils import decode_jwt
+            payload = decode_jwt(token)
+            if payload and 'user_id' in payload:
+                user_id = payload['user_id']
+        
         # Create reservation
         reservation = Reservation(
-            name=data['name'],
-            email=data['email'],
-            phone=data['phone'],
+            customer_id=customer_id,
             date=reservation_date,
             time=reservation_time,
             party_size=data['party_size'],
             special_requests=data.get('special_requests'),
             table_number=assigned_table,
-            user_id=request.user_id if hasattr(request, 'user_id') else None
+            user_id=user_id
         )
         
         db.session.add(reservation)
@@ -89,6 +129,30 @@ def create_reservation():
         logger.error('Create reservation error: %s', str(e))
         db.session.rollback()
         return jsonify({'error': 'Failed to create reservation'}), 500
+
+@reservation_bp.route('/user', methods=['GET'])
+def get_user_reservations():
+    """Get reservations for a specific user by email"""
+    try:
+        email = request.args.get('email')
+        if not email:
+            return jsonify({'error': 'Email parameter is required'}), 400
+        
+        # Find customer by email
+        customer = Customer.query.filter_by(email=email).first()
+        if not customer:
+            return jsonify({'reservations': []}), 200
+        
+        # Get all reservations for this customer (both guest and user reservations)
+        reservations = Reservation.query.filter_by(customer_id=customer.id).order_by(Reservation.date, Reservation.time).all()
+        
+        return jsonify({
+            'reservations': [r.to_dict() for r in reservations]
+        }), 200
+        
+    except Exception as e:
+        logger.error('Get user reservations error: %s', str(e))
+        return jsonify({'error': 'Failed to get user reservations'}), 500
 
 @reservation_bp.route('/', methods=['GET'])
 def get_reservations():
@@ -132,6 +196,7 @@ def get_reservation(reservation_id):
         return jsonify({'error': 'Failed to get reservation'}), 500
 
 @reservation_bp.route('/<uuid:reservation_id>', methods=['PUT'])
+@login_required
 def update_reservation(reservation_id):
     """Update a reservation"""
     try:

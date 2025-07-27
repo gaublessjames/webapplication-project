@@ -82,7 +82,7 @@ export default function ReservationSummary({
             <div className="flex items-center space-x-3">
               <Users className="h-5 w-5 text-gray-500" />
               <div>
-                <p className="text-sm text-gray-600">Guests</p>
+                                    <p className="text-sm text-gray-600">Number of Guests</p>
                 <p className="font-medium">{reservation.numberOfGuests}</p>
               </div>
             </div>

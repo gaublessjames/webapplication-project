@@ -156,15 +156,15 @@ def create_menu_data():
     """Create menu categories and items"""
     categories_data = [
         {
-            "name": "Appetizers",
-            "description": "Start your meal with our delicious French appetizers",
-            "icon": "🍽️",
+            "name": "Starters",
+            "description": "Fresh beginnings with our delicious French appetizers",
+            "icon": "🥗",
             "display_order": 1
         },
         {
             "name": "Main Courses",
             "description": "Our signature French main dishes",
-            "icon": "🥘",
+            "icon": "🍽️",
             "display_order": 2
         },
         {
@@ -194,12 +194,12 @@ def create_menu_data():
     
     # Menu items data
     menu_items_data = [
-        # Appetizers
+        # Starters
         {
             "name": "Escargots de Bourgogne",
             "description": "Traditional Burgundy snails in garlic herb butter",
             "price": Decimal("12.50"),
-            "category": "Appetizers",
+            "category": "Starters",
             "is_vegetarian": False,
             "is_gluten_free": True,
             "is_spicy": False,
@@ -209,7 +209,7 @@ def create_menu_data():
             "name": "Soupe à l'Oignon",
             "description": "Classic French onion soup with melted Gruyère cheese",
             "price": Decimal("9.50"),
-            "category": "Appetizers",
+            "category": "Starters",
             "is_vegetarian": True,
             "is_gluten_free": False,
             "is_spicy": False,
@@ -219,7 +219,7 @@ def create_menu_data():
             "name": "Salade Niçoise",
             "description": "Fresh tuna, eggs, olives, and vegetables with Dijon vinaigrette",
             "price": Decimal("14.00"),
-            "category": "Appetizers",
+            "category": "Starters",
             "is_vegetarian": False,
             "is_gluten_free": True,
             "is_spicy": False,

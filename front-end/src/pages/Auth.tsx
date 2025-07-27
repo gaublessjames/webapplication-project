@@ -28,11 +28,9 @@ const Auth = () => {
   const [error, setError] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { register, login } = useApi();
-  const { setUser, setRole } = useAuth();
-  const [verificationLink, setVerificationLink] = useState<string | null>(null);
-  const [verificationNote, setVerificationNote] = useState<string | null>(null);
-  const [verificationSuccess, setVerificationSuccess] = useState(false);
+  const { register } = useApi();
+  const { signIn, role } = useAuth();
+
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -51,7 +49,9 @@ const Auth = () => {
     const emailParam = searchParams.get("email");
     if (signup === "1") {
       setIsLogin(false);
-      if (emailParam) setEmail(emailParam);
+      if (emailParam) {
+        setEmail(emailParam);
+      }
     }
   }, [searchParams]);
 
@@ -75,55 +75,34 @@ const Auth = () => {
     createDemoUser();
   }, []);
 
-  // Helper to fetch the verification link for a given email
-  const fetchVerificationLink = async (email: string) => {
-    try {
-      const apiUrl = import.meta.env.VITE_LOCAL_API_URL || 'http://localhost:5001/api';
-      const res = await fetch(`${apiUrl}/auth/verification-link?email=${encodeURIComponent(email)}`);
-      if (!res.ok) throw new Error('Could not fetch verification link.');
-      const data = await res.json();
-      if (data.verification_link) {
-        setVerificationLink(data.verification_link);
-        setVerificationNote('You can simulate email verification below.');
-      } else {
-        setVerificationLink(null);
-        setVerificationNote('No verification link available. Please try signing up again.');
-      }
-    } catch (err: any) {
-      setVerificationLink(null);
-      setVerificationNote('Could not fetch verification link. Please try signing up again.');
-    }
-  };
+
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setVerificationLink(null);
-    setVerificationNote(null);
-    setVerificationSuccess(false);
 
     // Remove local admin bypass: always use backend authentication
 
     try {
       if (isLogin) {
-        // Sign in with email/password
-        const response = await login(email, password);
+        // Sign in with email/password using new useAuth hook
+        const result = await signIn(email, password);
         
-        if (response.error) throw new Error(response.error);
+        if (!result.success) {
+          throw new Error(result.error || 'Sign in failed');
+        }
         
-        if (response.user) {
-          setUser(response.user);
-          setRole(response.user.role || null);
-          toast({
-            title: "Welcome back!",
-            description: "You have successfully signed in.",
-          });
-          if (response.user.role === 'admin') {
-            navigate("/admin");
-          } else {
-            navigate("/dashboard");
-          }
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+        
+        // Navigate based on user role from signIn response
+        if (result.user?.role === 'admin') {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
         }
       } else {
         // Sign up with email/password
@@ -131,18 +110,23 @@ const Auth = () => {
 
         if (response.error) throw new Error(response.error);
 
-        if (response.verification_link) {
-          setVerificationLink(response.verification_link);
-          setVerificationNote(response.note || null);
-        }
+        // Show success message for account creation
+        toast({
+          title: "Account Created Successfully! 🎉",
+          description: response.message || "Your account has been activated and you can now log in.",
+          variant: "default",
+        });
+        
+        // Switch to login mode after successful signup
+        setIsLogin(true);
+        setEmail(email); // Keep the email for convenience
+        setPassword(""); // Clear password for security
+        setFullName(""); // Clear full name
       }
     } catch (error: any) {
       const authError = error as AuthError;
       setError(authError.message || "An error occurred during authentication");
-      // If the error is about email verification, fetch the actual verification link
-      if (authError.message && authError.message.includes('Please verify your email')) {
-        fetchVerificationLink(email);
-      }
+
       toast({
         title: "Authentication Error",
         description: authError.message || "An error occurred during authentication",
@@ -153,38 +137,7 @@ const Auth = () => {
     }
   };
 
-  // Simulate clicking the verification link
-  const handleSimulateVerify = async () => {
-    if (!verificationLink) return;
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(verificationLink);
-      const data = await res.json();
-      if (res.ok && data.message) {
-        setVerificationSuccess(true);
-        setVerificationNote(data.message);
-        // Debug: log before redirect
-        console.log('Redirecting to /auth after verification');
-        if (window.location.pathname !== '/auth') {
-          navigate('/auth');
-          console.log('Navigation to /auth triggered');
-        } else {
-          console.log('Already on /auth route, no navigation needed');
-        }
-        toast({
-          title: "User verified",
-          description: "You can now log in.",
-        });
-      } else {
-        setError(data.error || "Verification failed");
-      }
-    } catch (err: any) {
-      setError(err.message || "Verification failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex flex-col">
@@ -226,22 +179,8 @@ const Auth = () => {
                 </Alert>
               )}
 
-              {/* Simulated Email Verification Flow */}
-              {verificationLink && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 flex flex-col items-center">
-                  <Button
-                    type="button"
-                    className="mt-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold px-4 py-2 rounded"
-                    onClick={handleSimulateVerify}
-                    disabled={loading}
-                  >
-                    {loading ? "Verifying..." : "Simulate Email Verification"}
-                  </Button>
-                </div>
-              )}
-
-              {/* Demo Credentials - only show on login, not signup, and not after registration */}
-              {isLogin && !verificationLink && (
+              {/* Demo Credentials - only show on login, not signup */}
+              {isLogin && (
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4 mb-4">
                   <h4 className="text-sm font-semibold text-blue-800 mb-2">🧪 Demo Credentials (For Testing)</h4>
                   <div className="text-xs text-blue-700 space-y-1">
@@ -278,9 +217,8 @@ const Auth = () => {
                 </div>
               )}
 
-              {/* Email/Password Form - hide if verificationLink is shown and not yet verified */}
-              {!verificationLink && (
-                <form onSubmit={handleAuth} className="space-y-4">
+              {/* Email/Password Form */}
+              <form onSubmit={handleAuth} className="space-y-4">
                   {!isLogin && (
                     <div className="space-y-2">
                       <Label htmlFor="fullName" className="text-gray-700 font-semibold">Full Name</Label>
@@ -350,7 +288,6 @@ const Auth = () => {
                     )}
                   </Button>
                 </form>
-              )}
 
               <div className="text-center">
                 <button
@@ -361,8 +298,6 @@ const Auth = () => {
                     setEmail("");
                     setPassword("");
                     setFullName("");
-                    setVerificationLink(null);
-                    setVerificationNote(null);
                   }}
                   className="text-primary-600 hover:text-primary-700 font-semibold text-sm transition-colors duration-300"
                 >

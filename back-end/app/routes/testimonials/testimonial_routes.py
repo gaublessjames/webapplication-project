@@ -6,7 +6,7 @@ from flask import Blueprint, request, jsonify
 import logging
 from app.models import Testimonial
 from app.schemas import TestimonialSchema
-from app.utils import validate_rating
+from app.utils import validate_rating, login_required
 from app.extensions import db
 
 testimonial_bp = Blueprint('testimonials', __name__)
@@ -37,4 +37,34 @@ def create_testimonial():
     except Exception as e:
         logger.error('Create testimonial error: %s', str(e))
         db.session.rollback()
-        return jsonify({'error': 'Failed to create testimonial'}), 500 
+        return jsonify({'error': 'Failed to create testimonial'}), 500
+
+@testimonial_bp.route('/<uuid:testimonial_id>', methods=['PUT'])
+@login_required
+def update_testimonial(testimonial_id):
+    """Update a testimonial"""
+    try:
+        testimonial = Testimonial.query.get_or_404(testimonial_id)
+        data = request.json
+        
+        # Update fields
+        if 'title' in data:
+            testimonial.title = data['title']
+        if 'comment' in data:
+            testimonial.comment = data['comment']
+        if 'rating' in data:
+            if not validate_rating(data['rating']):
+                return jsonify({'error': 'Rating must be between 1 and 5'}), 400
+            testimonial.rating = data['rating']
+        if 'customer_name' in data:
+            testimonial.customer_name = data['customer_name']
+        if 'is_approved' in data:
+            testimonial.is_approved = data['is_approved']
+        
+        db.session.commit()
+        return jsonify(testimonial.to_dict()), 200
+        
+    except Exception as e:
+        logger.error('Update testimonial error: %s', str(e))
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update testimonial'}), 500 

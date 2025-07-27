@@ -14,10 +14,38 @@ logger = logging.getLogger('cafe_fausse_api')
 @admin_bp.route('/reservations', methods=['GET'])
 @admin_required
 def get_all_reservations_admin():
-    """Admin: Get all reservations"""
+    """Admin: Get all reservations with pagination"""
     try:
-        reservations = Reservation.query.order_by(Reservation.date, Reservation.time).all()
-        return jsonify([r.to_dict() for r in reservations]), 200
+        # Get pagination parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        # Validate parameters
+        if page < 1:
+            page = 1
+        if per_page < 1 or per_page > 100:
+            per_page = 10
+        
+        # Get total count
+        total = Reservation.query.count()
+        
+        # Get paginated reservations
+        reservations = Reservation.query.order_by(Reservation.date, Reservation.time).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        # Calculate pagination info
+        total_pages = reservations.pages if reservations.pages > 0 else 1
+        
+        return jsonify({
+            'reservations': [r.to_dict() for r in reservations.items],
+            'current_page': page,
+            'pages': total_pages,
+            'total': total,
+            'per_page': per_page,
+            'has_next': reservations.has_next,
+            'has_prev': reservations.has_prev
+        }), 200
     except Exception as e:
         logger.error('Admin get reservations error: %s', str(e))
         return jsonify({'error': 'Failed to get reservations'}), 500

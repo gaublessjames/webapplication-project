@@ -46,11 +46,11 @@ function getTimeSlotsForDate(date: Date | undefined) {
   if (!date) return allTimeSlots;
   const day = date.getDay(); // 0 = Sunday
   if (day === 0) {
-    // Sunday: 5:00 PM – 9:00 PM
-    return allTimeSlots.filter(t => t >= "17:00" && t <= "21:00");
+    // Sunday: 5:00 PM – 9:00 PM (last reservation at 8:30 PM)
+    return allTimeSlots.filter(t => t >= "17:00" && t <= "20:30");
   }
-  // Mon-Sat: 5:00 PM – 11:00 PM
-  return allTimeSlots;
+  // Monday–Saturday: 5:00 PM – 11:00 PM (last reservation at 10:30 PM)
+  return allTimeSlots.filter(t => t >= "17:00" && t <= "22:30");
 }
 
 export function handleDownloadPDF(reservationDetails: any) {
@@ -110,28 +110,31 @@ export function handleDownloadPDF(reservationDetails: any) {
   doc.setTextColor(221, 82, 76);
   doc.text('Restaurant Information', 30, 150);
   doc.setTextColor(51, 51, 51);
-  doc.text('123 Culinary District, Fine Dining Ave', 30, 158);
-  doc.text('(202) 555-4567', 30, 166);
-  doc.text('Tuesday - Sunday, 5:00 PM - 11:00 PM', 30, 174);
-  doc.text('Dress Code: Smart Casual', 30, 182);
+  doc.text('123 Gourmet Avenue, Culinary District', 30, 158);
+  doc.text('(555) 123-4567', 30, 166);
+  doc.text('Monday - Saturday: 5:00 PM - 11:00 PM', 30, 174);
+  doc.text('Sunday: 5:00 PM - 9:00 PM', 30, 182);
+  doc.text('Dress Code: Smart Casual', 30, 190);
   doc.setTextColor(221, 82, 76);
   doc.text('Important Notes', 30, 200);
   doc.setTextColor(51, 51, 51);
   doc.text('- Please arrive 15 minutes before your reservation time', 30, 208);
   doc.text('- Cancellations must be made 24 hours in advance', 30, 216);
-  doc.text('- For parties of 8 or more, a 20% gratuity will be added', 30, 224);
-  doc.text('- We accommodate dietary restrictions with advance notice', 30, 232);
+  doc.text('- Maximum 8 guests per reservation', 30, 224);
+  doc.text('- Special dietary requests accommodated', 30, 232);
+  doc.text('- Founded in 2010 by Chef Marie Dubois', 30, 240);
   doc.setFontSize(10);
   doc.setTextColor(102, 102, 102);
-  doc.text(`Receipt generated on ${new Date().toLocaleDateString()}`, 30, 250);
-  doc.text('We look forward to welcoming you to Café Fausse!', 30, 256);
-  doc.text('"Where every meal is a masterpiece"', 30, 262);
+  doc.text(`Receipt generated on ${new Date().toLocaleDateString()}`, 30, 248);
+  doc.text('We look forward to welcoming you to Café Fausse!', 30, 254);
+  doc.text('"Where every meal is a masterpiece"', 30, 260);
   // --- Add links section ---
   const email = reservationDetails.customerEmail || '';
   const reservationId = reservationDetails.reservationId || reservationDetails.id || '';
-  const cancelUrl = `${window.location.origin}/cancel-reservation/${encodeURIComponent(reservationId)}`;
-  const authUrl = `${window.location.origin}/auth?signup=1&email=${encodeURIComponent(email)}`;
-  let y = 270;
+  const baseUrl = window.location.origin || 'http://localhost:8080';
+  const cancelUrl = `${baseUrl}/cancel-reservation/${encodeURIComponent(reservationId)}`;
+  const authUrl = `${baseUrl}/auth?signup=1&email=${encodeURIComponent(email)}`;
+  let y = 268;
   doc.setFontSize(12);
   doc.setTextColor(221, 82, 76);
   doc.textWithLink('Cancel your reservation', 30, y, { url: cancelUrl });
@@ -148,6 +151,7 @@ const HeroBookingForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [reservationDetails, setReservationDetails] = useState<any | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [tablesRemaining, setTablesRemaining] = useState<number | null>(null);
+  const [savedCustomerData, setSavedCustomerData] = useState<CustomerFormData | null>(null);
   const { getCustomerByEmail, upsertCustomer, createReservation } = useApi();
 
   const bookingForm = useForm<HeroBookingFormData>({
@@ -159,6 +163,18 @@ const HeroBookingForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     },
   });
 
+  // Ensure the selected time is valid for the current date
+  const currentDate = bookingForm.watch('date');
+  const availableTimeSlots = getTimeSlotsForDate(currentDate);
+  const currentTime = bookingForm.watch('time');
+  
+  // If current time is not in available slots, reset to first available slot
+  React.useEffect(() => {
+    if (currentDate && currentTime && !availableTimeSlots.includes(currentTime)) {
+      bookingForm.setValue('time', availableTimeSlots[0] || '19:00');
+    }
+  }, [currentDate, currentTime, availableTimeSlots, bookingForm]);
+
   const onBookingSubmit = (data: HeroBookingFormData) => {
     setBookingData(data);
     setShowCustomerForm(true);
@@ -167,6 +183,8 @@ const HeroBookingForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const onCustomerSubmit = async (customerData: CustomerFormData) => {
     if (!bookingData) return;
     setIsSubmitting(true);
+    // Save customer data for potential retry
+    setSavedCustomerData(customerData);
     try {
       // First, create or get customer
       let customerId;
@@ -180,19 +198,22 @@ const HeroBookingForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           phone: customerData.phone || null,
           newsletter_signup: customerData.newsletterSignup,
         });
-        customerId = upsertRes.customer?.id;
+        if (upsertRes.error) {
+          throw new Error(`Customer creation failed: ${upsertRes.error}`);
+        }
+        customerId = upsertRes.id; // Use the returned customer ID directly
       }
       if (!customerId) throw new Error('Could not create or find customer');
 
-      // Create reservation
+      // Create reservation - send customer details directly (backend will handle customer creation/lookup)
       const reservationData: any = {
-        customer_id: customerId,
-        reservation_date: format(bookingData.date, 'yyyy-MM-dd'),
-        reservation_time: bookingData.time,
-        number_of_guests: bookingData.guests,
         name: customerData.name,
         email: customerData.email,
         phone: customerData.phone || '',
+        date: format(bookingData.date, 'yyyy-MM-dd'),
+        time: bookingData.time,
+        party_size: bookingData.guests,
+        newsletter_signup: customerData.newsletterSignup
       };
       const reservationRes = await createReservation(reservationData);
       if (reservationRes.error) throw new Error(reservationRes.error);
@@ -220,6 +241,11 @@ const HeroBookingForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         description: error.message || 'There was an error processing your reservation. Please try again.',
         variant: 'destructive',
       });
+      
+      // Preserve form data for retry - don't reset forms
+      setReservationDetails(null);
+      setTablesRemaining(null);
+      // Keep bookingData and showCustomerForm true so user can retry
     } finally {
       setIsSubmitting(false);
     }
@@ -231,13 +257,14 @@ const HeroBookingForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       onBack={() => setShowCustomerForm(false)}
       isSubmitting={isSubmitting}
       bookingData={bookingData}
+      savedCustomerData={savedCustomerData}
     />;
   }
   if (reservationDetails) {
     // Map fields for PDF
     const pdfDetails = {
-      customerName: reservationDetails.customerName || reservationDetails.name || '',
-      customerEmail: reservationDetails.customerEmail || reservationDetails.email || '',
+      customerName: reservationDetails.customer?.name || reservationDetails.customerName || reservationDetails.name || '',
+      customerEmail: reservationDetails.customer?.email || reservationDetails.customerEmail || reservationDetails.email || '',
       reservationDate: reservationDetails.reservationDate || reservationDetails.date || reservationDetails.reservation_date || '',
       reservationTime: reservationDetails.reservationTime || reservationDetails.time || reservationDetails.reservation_time || '',
       tableNumber: reservationDetails.tableNumber || reservationDetails.table_number || '',
@@ -377,7 +404,7 @@ const HeroBookingForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                           <div className="flex items-center justify-start w-full">
                             <CalendarIcon className="mr-3 h-5 w-5 text-gray-400" />
                             <div className="text-left">
-                              <div className="text-xs text-gray-400 uppercase tracking-wide">Guests</div>
+                              <div className="text-xs text-gray-400 uppercase tracking-wide">Number of Guests</div>
                               <div className="text-sm font-medium text-gray-900">
                                 {field.value || 2} {field.value === 1 ? 'person' : 'people'}
                               </div>
@@ -414,17 +441,22 @@ const CustomerDetailsForm = ({
   onSubmit, 
   onBack, 
   isSubmitting, 
-  bookingData 
+  bookingData,
+  savedCustomerData 
 }: { 
   onSubmit: (data: CustomerFormData) => Promise<void>;
   onBack: () => void;
   isSubmitting: boolean;
   bookingData: HeroBookingFormData | null;
+  savedCustomerData?: CustomerFormData | null;
 }) => {
   const customerForm = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
     defaultValues: {
-      newsletterSignup: false,
+      name: savedCustomerData?.name || '',
+      email: savedCustomerData?.email || '',
+      phone: savedCustomerData?.phone || '',
+      newsletterSignup: savedCustomerData?.newsletterSignup || false,
     },
   });
 

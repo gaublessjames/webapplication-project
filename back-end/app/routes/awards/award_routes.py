@@ -35,4 +35,34 @@ def create_award():
     except Exception as e:
         logger.error('Create award error: %s', str(e))
         db.session.rollback()
-        return jsonify({'error': 'Failed to create award'}), 500 
+        return jsonify({'error': 'Failed to create award'}), 500
+
+@award_bp.route('/<uuid:award_id>', methods=['PUT'])
+@login_required
+def update_award(award_id):
+    """Update an award"""
+    try:
+        award = Award.query.get_or_404(award_id)
+        data = request.json
+        
+        # Update fields
+        if 'name' in data:
+            award.name = data['name']
+        if 'description' in data:
+            award.description = data['description']
+        if 'year' in data:
+            award.year = data['year']
+        if 'category' in data:
+            award.category = data['category']
+        if 'is_featured' in data:
+            award.is_featured = data['is_featured']
+        if 'display_order' in data:
+            award.display_order = data['display_order']
+        
+        db.session.commit()
+        return jsonify(award.to_dict()), 200
+        
+    except Exception as e:
+        logger.error('Update award error: %s', str(e))
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update award'}), 500 

@@ -14,5 +14,5 @@ migrate = Migrate()
 def init_extensions(app):
     """Initialize all Flask extensions"""
     db.init_app(app)
-    cors.init_app(app, supports_credentials=True, origins=["http://localhost:8080", "http://localhost:8081"])
+    cors.init_app(app, supports_credentials=True, origins=["http://localhost:8080", "http://localhost:8081", "http://192.168.0.100:8081"])
     migrate.init_app(app, db)

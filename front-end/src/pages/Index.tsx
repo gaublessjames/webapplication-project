@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { Calendar, Users, Clock, MapPin, Search, User, LogOut, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useApi } from '@/hooks/useApi';
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 import HeroBookingForm from "@/components/HeroBookingForm";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -16,6 +18,7 @@ import { LoadingSpinner } from '@/components/shared';
 
 const Index = () => {
   const { user, loading, signOut, role } = useAuth();
+  const { toast } = useToast();
   const [reviewForm, setReviewForm] = useState({ title: "", rating: 5, comment: "" });
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
@@ -34,7 +37,15 @@ const Index = () => {
   const { getMenuCategories } = useApi();
 
   // API base URL (configurable for dev/prod)
-  const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL;
+  const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || 'http://localhost:5001/api';
+  
+  // Debug logging
+  console.log('Environment variables:', {
+    VITE_LOCAL_API_URL: import.meta.env.VITE_LOCAL_API_URL,
+    API_BASE_URL: API_BASE_URL,
+    NODE_ENV: import.meta.env.NODE_ENV,
+    MODE: import.meta.env.MODE
+  });
 
   // Fetch reviews from backend
   useEffect(() => {
@@ -42,11 +53,21 @@ const Index = () => {
       setReviewsLoading(true);
       setReviewsError("");
       try {
-        const res = await fetch(`${API_BASE_URL}/testimonials`);
-        if (!res.ok) throw new Error("Failed to fetch reviews");
+        console.log('Fetching reviews from:', `${API_BASE_URL}/testimonials/`);
+        const res = await fetch(`${API_BASE_URL}/testimonials/`);
+        console.log('Reviews response status:', res.status);
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Reviews fetch error:', errorText);
+          throw new Error(`Failed to fetch reviews (${res.status}): ${errorText}`);
+        }
+        
         const data = await res.json();
+        console.log('Reviews data:', data);
         setReviews(data);
       } catch (err: any) {
+        console.error('Reviews fetch error:', err);
         setReviewsError(err.message || "Failed to fetch reviews");
       } finally {
         setReviewsLoading(false);
@@ -60,7 +81,7 @@ const Index = () => {
     if (reviewSuccess) {
       (async () => {
         try {
-          const res = await fetch(`${API_BASE_URL}/testimonials`);
+          const res = await fetch(`${API_BASE_URL}/testimonials/`);
           if (!res.ok) throw new Error();
           const data = await res.json();
           setReviews(data);
@@ -75,7 +96,7 @@ const Index = () => {
       setAwardsLoading(true);
       setAwardsError("");
       try {
-        const res = await fetch(`${API_BASE_URL}/awards`);
+        const res = await fetch(`${API_BASE_URL}/awards/`);
         if (!res.ok) throw new Error("Failed to fetch awards");
         const data = await res.json();
         setAwards(data);
@@ -107,36 +128,77 @@ const Index = () => {
   const handleReviewSubmit = async (formData: { title: string; rating: number; comment: string }) => {
     setReviewSubmitting(true);
     setReviewError("");
+    
+    console.log('Submitting review to:', `${API_BASE_URL}/testimonials/`);
+    console.log('Review data:', formData);
+    
     try {
-      const res = await fetch(`${API_BASE_URL}/testimonials`, {
+      const res = await fetch(`${API_BASE_URL}/testimonials/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
         body: JSON.stringify({
           title: formData.title,
           rating: formData.rating,
           comment: formData.comment,
         }),
       });
+      
+      console.log('Response status:', res.status);
+      console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+      
       let data;
       try {
         data = await res.json();
-      } catch {
+        console.log('Response data:', data);
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError);
         data = {};
       }
+      
       if (!res.ok) {
         // Show backend validation error if present
+        let errorMessage = '';
         if (data.details && typeof data.details === 'object') {
           const firstField = Object.keys(data.details)[0];
-          setReviewError(Array.isArray(data.details[firstField]) ? data.details[firstField][0] : data.details[firstField]);
+          errorMessage = Array.isArray(data.details[firstField]) ? data.details[firstField][0] : data.details[firstField];
         } else {
-          setReviewError(data.error || "Failed to submit review");
+          errorMessage = data.error || data.message || `Failed to submit review (${res.status})`;
         }
+        
+        setReviewError(errorMessage);
+        
+        // Show error toast notification
+        toast({
+          title: "Review Submission Failed ❌",
+          description: errorMessage,
+          variant: "destructive",
+        });
         return;
       }
+      
       setReviewSuccess(true);
       setReviewForm({ title: "", rating: 5, comment: "" });
+      setShowReviewModal(false);
+      
+      // Show success toast notification
+      toast({
+        title: "Review Submitted Successfully! 🎉",
+        description: "Thank you for your review. It will appear once approved by our team.",
+        variant: "default",
+      });
     } catch (err: any) {
-      setReviewError(err.message || "Failed to submit review");
+      console.error('Network error:', err);
+      setReviewError(err.message || "Network error - please check your connection and try again");
+      
+      // Show error toast notification
+      toast({
+        title: "Failed to Submit Review ❌",
+        description: err.message || "Network error - please check your connection and try again",
+        variant: "destructive",
+      });
     } finally {
       setReviewSubmitting(false);
     }
@@ -546,6 +608,9 @@ const Index = () => {
 
       {/* Cookie Banner */}
       <CookieBanner />
+
+      {/* Toast Notifications */}
+      <Toaster />
 
       {/* Mobile menu trigger and Sheet for Index page (only on mobile) */}
       <div className="lg:hidden fixed top-4 right-4 z-[9999]">

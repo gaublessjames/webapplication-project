@@ -7,7 +7,6 @@ interface TestimonialsManagementProps {
   testimonials: Testimonial[];
   loading: boolean;
   error: string;
-  onEdit: (testimonial: Testimonial) => void;
   onApprove: (testimonialId: string) => Promise<void>;
 }
 
@@ -15,7 +14,6 @@ export default function TestimonialsManagement({
   testimonials,
   loading,
   error,
-  onEdit,
   onApprove
 }: TestimonialsManagementProps) {
   // Show loading state only if we're actively loading
@@ -66,14 +64,6 @@ export default function TestimonialsManagement({
                     <span>{testimonial.created_at}</span>
                   </div>
                   <div className="flex items-center justify-end mt-4 space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onEdit(testimonial)}
-                      className="bg-white/90 hover:bg-white"
-                    >
-                      Edit
-                    </Button>
                     {/* Approve button for pending testimonials */}
                     {!testimonial.is_approved && (
                       <Button

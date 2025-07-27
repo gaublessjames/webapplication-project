@@ -115,7 +115,22 @@ export function generateReservationPDF(reservationDetails: ReservationDetails): 
   doc.text('Please arrive 5 minutes before your reservation time.', 105, yPosition, { align: 'center' });
   
   yPosition += 8;
-  doc.text('For any changes, please contact us at +1 (555) 123-4567', 105, yPosition, { align: 'center' });
+  doc.text('For any changes, please contact us at (555) 123-4567', 105, yPosition, { align: 'center' });
+  
+  yPosition += 8;
+  doc.text('123 Gourmet Avenue, Culinary District', 105, yPosition, { align: 'center' });
+  
+  yPosition += 8;
+  doc.text('Monday - Saturday: 5:00 PM - 11:00 PM | Sunday: 5:00 PM - 9:00 PM', 105, yPosition, { align: 'center' });
+  
+  // Add signup link if email is available
+  if (reservationDetails.customerEmail) {
+    yPosition += 12;
+    const baseUrl = window.location.origin || 'http://localhost:8080';
+    const authUrl = `${baseUrl}/auth?signup=1&email=${encodeURIComponent(reservationDetails.customerEmail)}`;
+    doc.setTextColor(221, 82, 76);
+    doc.textWithLink('Sign up for an account', 105, yPosition, { align: 'center', url: authUrl });
+  }
   
   // Save the PDF
   const fileName = `reservation_${reservationDetails.reservationId || Date.now()}.pdf`;
