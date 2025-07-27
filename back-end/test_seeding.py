@@ -5,7 +5,7 @@ Test script to verify database seeding
 
 import sys
 from app import create_app
-from models import (
+from app.models import (
     User, Reservation, Testimonial, MenuCategory, MenuItem, 
     GalleryImage, RestaurantInfo, Award, Customer, NewsletterSubscriber,
     Profile

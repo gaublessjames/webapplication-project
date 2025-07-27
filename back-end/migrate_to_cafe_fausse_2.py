@@ -6,7 +6,7 @@ Migration script to help transition from cafe_fausse to cafe_fausse_2 database
 import os
 import sys
 from app import create_app
-from models import db
+from app.extensions import db
 from flask_migrate import upgrade, init, migrate
 
 def migrate_to_cafe_fausse_2():

@@ -6,7 +6,8 @@ Database setup script for Café Fausse
 import os
 import sys
 from app import create_app
-from models import db, User
+from app.extensions import db
+from app.models import User
 import bcrypt
 
 app = create_app()
