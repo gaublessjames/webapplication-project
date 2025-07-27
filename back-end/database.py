@@ -1,5 +1,6 @@
 from app import create_app
-from models import db, RestaurantInfo, MenuCategory, MenuItem, Award, Testimonial
+from app.extensions import db
+from app.models import RestaurantInfo, MenuCategory, MenuItem, Award, Testimonial
 from datetime import datetime, time
 
 def init_database():

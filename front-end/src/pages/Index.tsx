@@ -3,17 +3,22 @@ import { Link } from "react-router-dom";
 import { Calendar, Users, Clock, MapPin, Search, User, LogOut, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useApi } from '@/hooks/useApi';
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 import HeroBookingForm from "@/components/HeroBookingForm";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import CookieBanner from "@/components/CookieBanner";
-import restaurantHero from "@/assets/restaurant-hero.jpg";
+import Header from "@/components/Header";
+import homeCafeFausse from "@/assets/home-cafe-fausse.webp";
 import React, { useState, useEffect } from "react";
 import Footer, { NewsletterSignupForm } from "@/components/Footer";
 import { Sheet, SheetTrigger, SheetContent, SheetClose } from "@/components/ui/sheet";
+import { LoadingSpinner } from '@/components/shared';
 
 const Index = () => {
   const { user, loading, signOut, role } = useAuth();
+  const { toast } = useToast();
   const [reviewForm, setReviewForm] = useState({ title: "", rating: 5, comment: "" });
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
@@ -32,7 +37,17 @@ const Index = () => {
   const { getMenuCategories } = useApi();
 
   // API base URL (configurable for dev/prod)
-  const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL;
+  // In development, use the Vite proxy (/api) which forwards to localhost:5001
+  // In production, use the environment variable or fallback
+  const API_BASE_URL = import.meta.env.VITE_LOCAL_API_URL || '/api';
+  
+  // Debug logging
+  console.log('Environment variables:', {
+    VITE_LOCAL_API_URL: import.meta.env.VITE_LOCAL_API_URL,
+    API_BASE_URL: API_BASE_URL,
+    NODE_ENV: import.meta.env.NODE_ENV,
+    MODE: import.meta.env.MODE
+  });
 
   // Fetch reviews from backend
   useEffect(() => {
@@ -40,11 +55,21 @@ const Index = () => {
       setReviewsLoading(true);
       setReviewsError("");
       try {
-        const res = await fetch(`${API_BASE_URL}/testimonials`);
-        if (!res.ok) throw new Error("Failed to fetch reviews");
+        console.log('Fetching reviews from:', `${API_BASE_URL}/testimonials/`);
+        const res = await fetch(`${API_BASE_URL}/testimonials/`);
+        console.log('Reviews response status:', res.status);
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Reviews fetch error:', errorText);
+          throw new Error(`Failed to fetch reviews (${res.status}): ${errorText}`);
+        }
+        
         const data = await res.json();
+        console.log('Reviews data:', data);
         setReviews(data);
       } catch (err: any) {
+        console.error('Reviews fetch error:', err);
         setReviewsError(err.message || "Failed to fetch reviews");
       } finally {
         setReviewsLoading(false);
@@ -58,7 +83,7 @@ const Index = () => {
     if (reviewSuccess) {
       (async () => {
         try {
-          const res = await fetch(`${API_BASE_URL}/testimonials`);
+          const res = await fetch(`${API_BASE_URL}/testimonials/`);
           if (!res.ok) throw new Error();
           const data = await res.json();
           setReviews(data);
@@ -73,7 +98,7 @@ const Index = () => {
       setAwardsLoading(true);
       setAwardsError("");
       try {
-        const res = await fetch(`${API_BASE_URL}/awards`);
+        const res = await fetch(`${API_BASE_URL}/awards/`);
         if (!res.ok) throw new Error("Failed to fetch awards");
         const data = await res.json();
         setAwards(data);
@@ -96,49 +121,86 @@ const Index = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-coral-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+        <LoadingSpinner text="Loading..." />
       </div>
     );
   }
 
   // Add review form submit handler
-  const handleReviewSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleReviewSubmit = async (formData: { title: string; rating: number; comment: string }) => {
     setReviewSubmitting(true);
     setReviewError("");
+    
+    console.log('Submitting review to:', `${API_BASE_URL}/testimonials/`);
+    console.log('Review data:', formData);
+    
     try {
-      const res = await fetch(`${API_BASE_URL}/testimonials`, {
+      const res = await fetch(`${API_BASE_URL}/testimonials/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
         body: JSON.stringify({
-          title: reviewForm.title,
-          rating: reviewForm.rating,
-          comment: reviewForm.comment,
+          title: formData.title,
+          rating: formData.rating,
+          comment: formData.comment,
         }),
       });
+      
+      console.log('Response status:', res.status);
+      console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+      
       let data;
       try {
         data = await res.json();
-      } catch {
+        console.log('Response data:', data);
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError);
         data = {};
       }
+      
       if (!res.ok) {
         // Show backend validation error if present
+        let errorMessage = '';
         if (data.details && typeof data.details === 'object') {
           const firstField = Object.keys(data.details)[0];
-          setReviewError(Array.isArray(data.details[firstField]) ? data.details[firstField][0] : data.details[firstField]);
+          errorMessage = Array.isArray(data.details[firstField]) ? data.details[firstField][0] : data.details[firstField];
         } else {
-          setReviewError(data.error || "Failed to submit review");
+          errorMessage = data.error || data.message || `Failed to submit review (${res.status})`;
         }
+        
+        setReviewError(errorMessage);
+        
+        // Show error toast notification
+        toast({
+          title: "Review Submission Failed ❌",
+          description: errorMessage,
+          variant: "destructive",
+        });
         return;
       }
+      
       setReviewSuccess(true);
       setReviewForm({ title: "", rating: 5, comment: "" });
+      setShowReviewModal(false);
+      
+      // Show success toast notification
+      toast({
+        title: "Review Submitted Successfully! 🎉",
+        description: "Thank you for your review. It will appear once approved by our team.",
+        variant: "default",
+      });
     } catch (err: any) {
-      setReviewError(err.message || "Failed to submit review");
+      console.error('Network error:', err);
+      setReviewError(err.message || "Network error - please check your connection and try again");
+      
+      // Show error toast notification
+      toast({
+        title: "Failed to Submit Review ❌",
+        description: err.message || "Network error - please check your connection and try again",
+        variant: "destructive",
+      });
     } finally {
       setReviewSubmitting(false);
     }
@@ -157,73 +219,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white text-foreground">
       {/* Navigation - Enhanced Design */}
-      <nav className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 relative z-50 sticky top-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-all duration-300 transform hover:scale-105">
-              Café Fausse
-            </Link>
-            
-            {/* Desktop Navigation - Updated Colors */}
-            <div className="hidden lg:flex items-center space-x-8">
-              <Link to="/" className="text-white font-semibold bg-primary-600 px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-300">
-                Home
-              </Link>
-              <Link to="/menu" className="text-primary-600 hover:text-primary-700 transition-all duration-300 font-medium hover:bg-primary-50 px-3 py-2 rounded-lg">
-                Menu
-              </Link>
-              <Link to="/about" className="text-primary-600 hover:text-primary-700 transition-all duration-300 font-medium hover:bg-primary-50 px-3 py-2 rounded-lg">
-                About
-              </Link>
-              <Link to="/gallery" className="text-primary-600 hover:text-primary-700 transition-all duration-300 font-medium hover:bg-primary-50 px-3 py-2 rounded-lg">
-                Gallery
-              </Link>
-              <Link to="/reservations" className="text-primary-600 hover:text-primary-700 transition-all duration-300 font-medium hover:bg-primary-50 px-3 py-2 rounded-lg">
-                Reservations
-              </Link>
-              
-              {user ? (
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-primary-50 to-primary-100 rounded-full border border-primary-200">
-                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
-                    <span className="text-primary-700 text-sm font-medium">
-                      {user.email?.split('@')[0]}
-                    </span>
-                  </div>
-                  <Button
-                    onClick={signOut}
-                    variant="outline"
-                    size="sm"
-                    className="border-primary-300 text-primary-600 hover:bg-primary-50 hover:border-primary-400 transition-all duration-300"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-3">
-                  <Button asChild variant="outline" size="sm" className="border-primary-600 text-primary-600 hover:bg-primary-50 hover:border-primary-700 transition-all duration-300 font-medium">
-                    <Link to="/auth">
-                      <User className="w-4 h-4 mr-2" />
-                      Sign In
-                    </Link>
-                  </Button>
-                  <Button asChild size="sm" className="bg-primary-600 hover:bg-primary-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 font-medium">
-                    <Link to="/auth">Sign Up</Link>
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Header />
 
       {/* Hero Section - Clean Visual Focus */}
       <section className="relative min-h-[90vh] md:min-h-screen flex items-center justify-center overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat transform scale-105"
           style={{
-            backgroundImage: `url(${restaurantHero})`,
+            backgroundImage: `url(${homeCafeFausse})`,
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/60 to-black/70"></div>
@@ -271,7 +274,9 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-extrabold text-primary-700 mb-8 text-center drop-shadow-lg">Popular Cuisines</h2>
           {categoriesLoading ? (
-            <div className="text-center text-primary-600 py-8">Loading cuisines...</div>
+            <div className="text-center py-8">
+              <LoadingSpinner text="Loading cuisines..." />
+            </div>
           ) : categoriesError ? (
             <div className="text-center text-red-600 py-8">{categoriesError}</div>
           ) : categories.length === 0 ? (
@@ -471,7 +476,7 @@ const Index = () => {
                   <div className="w-full h-full transition-all duration-300 flex items-center justify-center">
                     {reviews[currentReview] && (
                       <div key={reviews[currentReview].id} className="bg-white/10 backdrop-blur-xl border-2 border-yellow-400/60 rounded-3xl p-10 md:p-12 shadow-2xl animate-fade-in flex flex-col items-center justify-center w-full h-full min-h-[240px] md:min-h-[300px] transition-all duration-300 relative">
-                        <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-yellow-400 text-5xl md:text-6xl drop-shadow-lg select-none">“</span>
+                        <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-yellow-400 text-5xl md:text-6xl drop-shadow-lg select-none">"</span>
                         <div className="flex flex-col items-center gap-2 mb-4 w-full">
                           <span className="font-extrabold text-primary-800 text-2xl md:text-3xl text-center w-full tracking-tight drop-shadow">{reviews[currentReview].title}</span>
                           <span className="flex items-center justify-center mt-1">
@@ -530,7 +535,10 @@ const Index = () => {
             {reviewSuccess ? (
               <div className="text-green-700 bg-green-50 border border-green-200 rounded-lg p-4 mb-4 text-center">Thank you for your review! It will appear once approved.</div>
             ) : (
-              <form onSubmit={handleReviewSubmit} className="space-y-6 text-left">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                handleReviewSubmit(reviewForm);
+              }} className="space-y-6 text-left">
                 <div>
                   <label className="block text-sm font-medium text-primary-700 mb-1">Review Title</label>
                   <input
@@ -603,6 +611,9 @@ const Index = () => {
       {/* Cookie Banner */}
       <CookieBanner />
 
+      {/* Toast Notifications */}
+      <Toaster />
+
       {/* Mobile menu trigger and Sheet for Index page (only on mobile) */}
       <div className="lg:hidden fixed top-4 right-4 z-[9999]">
         <Sheet>
@@ -634,7 +645,7 @@ const Index = () => {
                 role === "admin" ? (
                   <SheetClose asChild><Link to="/admin" className="font-medium px-4 py-2 rounded-lg text-primary-600 hover:bg-primary-50">Admin Dashboard</Link></SheetClose>
                 ) : (
-                  <SheetClose asChild><Link to="/dashboard" className="font-medium px-4 py-2 rounded-lg text-primary-600 hover:bg-primary-50">Dashboard</Link></SheetClose>
+                  <SheetClose asChild><Link to="/auth" className="font-medium px-4 py-2 rounded-lg text-primary-600 hover:bg-primary-50">Dashboard</Link></SheetClose>
                 )
               )}
               {!user ? (

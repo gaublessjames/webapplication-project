@@ -7,11 +7,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { Header, Footer } from "@/components/layout";
 import HeroBookingForm, { handleDownloadPDF } from "@/components/HeroBookingForm";
 import UserReservationForm from "@/components/UserReservationForm";
 import { useApi } from '@/hooks/useApi';
+import { LoadingSpinner } from '@/components/shared';
 
 interface Reservation {
   id: string;
@@ -24,11 +24,17 @@ interface Reservation {
   date?: string;
   time?: string;
   party_size?: number;
+  customer?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+  };
 }
 
 const Dashboard = () => {
   const { user, loading: authLoading, profile } = useAuth();
-  const { getCustomerByEmail, getReservations, cancelReservation } = useApi();
+  const { getUserReservations, cancelReservation } = useApi();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
@@ -45,25 +51,17 @@ const Dashboard = () => {
 
   const fetchReservations = async () => {
     try {
-      // First get the customer record for this user
-      const customerRes = await getCustomerByEmail(user?.email);
-      // Then get reservations for this customer
-      const res = await getReservations();
-      let filtered: any[] = [];
-      if (customerRes && customerRes.customer) {
-        // Match by customer_id
-        filtered = (res.reservations || []).filter((r: any) => r.customer_id === customerRes.customer.id);
+      if (!user?.email) {
+        setReservations([]);
+        return;
       }
-      // Also include reservations that match the user's email (for legacy or direct bookings)
-      if (user?.email) {
-        const emailMatches = (res.reservations || []).filter((r: any) => r.email === user.email);
-        // Merge and deduplicate by reservation id
-        const all = [...filtered, ...emailMatches];
-        filtered = all.filter((r, idx, arr) => arr.findIndex(x => x.id === r.id) === idx);
-      }
-      setReservations(filtered);
+      
+      // Use the dedicated endpoint to get user reservations by email
+      const response = await getUserReservations(user.email);
+      setReservations(response.reservations || []);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching reservations:', error);
+      setReservations([]);
     } finally {
       setLoading(false);
     }
@@ -122,10 +120,7 @@ const Dashboard = () => {
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         <Header />
         <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your dashboard...</p>
-          </div>
+          <LoadingSpinner text="Loading your dashboard..." />
         </div>
         <Footer />
       </div>
@@ -276,8 +271,8 @@ const Dashboard = () => {
                             size="sm"
                             onClick={() => handleDownloadPDF({
                               reservationId: reservation.id,
-                              customerName: profile?.full_name || user?.email?.split('@')[0] || '',
-                              customerEmail: user?.email || '',
+                              customerName: reservation.customer?.name || profile?.full_name || user?.email?.split('@')[0] || '',
+                              customerEmail: reservation.customer?.email || user?.email || '',
                               reservationDate: formatDate(reservation.date || reservation.reservation_date || ''),
                               reservationTime: formatTime(reservation.time || reservation.reservation_time || ''),
                               numberOfGuests: reservation.party_size || reservation.number_of_guests || 0,
@@ -365,8 +360,8 @@ const Dashboard = () => {
                               size="sm"
                               onClick={() => handleDownloadPDF({
                                 reservationId: reservation.id,
-                                customerName: profile?.full_name || user?.email?.split('@')[0] || '',
-                                customerEmail: user?.email || '',
+                                customerName: reservation.customer?.name || profile?.full_name || user?.email?.split('@')[0] || '',
+                                customerEmail: reservation.customer?.email || user?.email || '',
                                 reservationDate: formatDate(reservation.date || reservation.reservation_date || ''),
                                 reservationTime: formatTime(reservation.time || reservation.reservation_time || ''),
                                 numberOfGuests: reservation.party_size || reservation.number_of_guests || 0,

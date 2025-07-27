@@ -1,15 +1,13 @@
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { HelpCircle, Phone, Mail, MapPin } from "lucide-react";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import Footer from "@/components/layout/Footer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Phone, Clock, Mail, Star, Award, Users, Calendar, Heart, HelpCircle } from "lucide-react";
 import faqHero from "@/assets/faq-hero.jpg";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
 const FAQ = () => {
   const faqs = [
@@ -103,23 +101,35 @@ const FAQ = () => {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-              <Phone className="w-8 h-8 text-primary-600 mx-auto mb-4" />
-              <h3 className="font-semibold text-gray-900 mb-2">Call Us</h3>
-              <p className="text-gray-600">(555) 123-4567</p>
-            </div>
+            <Card className="text-center hover:shadow-md transition-shadow">
+              <CardHeader>
+                <Phone className="w-8 h-8 text-primary-600 mx-auto mb-2" />
+                <CardTitle className="text-lg">Call Us</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">(555) 123-4567</p>
+              </CardContent>
+            </Card>
             
-            <div className="text-center bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-              <Mail className="w-8 h-8 text-primary-600 mx-auto mb-4" />
-              <h3 className="font-semibold text-gray-900 mb-2">Email Us</h3>
-              <p className="text-gray-600">info@cafefausse.com</p>
-            </div>
+            <Card className="text-center hover:shadow-md transition-shadow">
+              <CardHeader>
+                <Mail className="w-8 h-8 text-primary-600 mx-auto mb-2" />
+                <CardTitle className="text-lg">Email Us</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">info@cafefausse.com</p>
+              </CardContent>
+            </Card>
             
-            <div className="text-center bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-              <MapPin className="w-8 h-8 text-primary-600 mx-auto mb-4" />
-              <h3 className="font-semibold text-gray-900 mb-2">Visit Us</h3>
-              <p className="text-gray-600">123 Culinary Street<br />Food District, FD 12345</p>
-            </div>
+            <Card className="text-center hover:shadow-md transition-shadow">
+              <CardHeader>
+                <MapPin className="w-8 h-8 text-primary-600 mx-auto mb-2" />
+                <CardTitle className="text-lg">Visit Us</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">123 Culinary Street<br />Food District, FD 12345</p>
+              </CardContent>
+            </Card>
           </div>
           
           <div className="text-center mt-8">

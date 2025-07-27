@@ -25,11 +25,13 @@ def get_postgres_url():
     
     print("\n🔗 EXAMPLE DATABASE_URL FORMATS:")
     print("Neon:")
-    print("  postgresql://username:password@ep-cool-forest-123456.us-east-1.aws.neon.tech/database?sslmode=require")
+    print("  postgresql://username:password@ep-cool-forest-123456.us-east-1.aws.neon.tech/cafe_fausse_2?sslmode=require")
     print("\nSupabase:")
     print("  postgresql://postgres:password@db.supabase.co:5432/postgres")
     print("\nRailway:")
     print("  postgresql://postgres:password@containers-us-west-1.railway.app:5432/railway")
+    print("\nLocal Development:")
+    print("  postgresql://postgres:postgres@localhost:5432/cafe_fausse_2")
     
     print("\n⚠️  IMPORTANT:")
     print("• Never commit your .env file to version control")

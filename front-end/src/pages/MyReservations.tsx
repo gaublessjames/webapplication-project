@@ -7,9 +7,9 @@ import { useApi } from "@/hooks/useApi";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { Header, Footer } from "@/components/layout";
 import HeroBookingForm, { handleDownloadPDF } from "@/components/HeroBookingForm";
+import { LoadingSpinner } from '@/components/shared';
 
 interface Reservation {
   id: string;
@@ -19,6 +19,12 @@ interface Reservation {
   table_number: number;
   status: string;
   created_at: string;
+  customer?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+  };
 }
 
 const MyReservations = () => {
@@ -116,10 +122,7 @@ const MyReservations = () => {
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         <Header />
         <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your reservations...</p>
-          </div>
+          <LoadingSpinner text="Loading your reservations..." />
         </div>
         <Footer />
       </div>
@@ -264,8 +267,8 @@ const MyReservations = () => {
                             size="sm"
                             onClick={() => handleDownloadPDF({
                               reservationId: reservation.id,
-                              customerName: user?.email?.split('@')[0] || '',
-                              customerEmail: user?.email || '',
+                              customerName: reservation.customer?.name || user?.email?.split('@')[0] || '',
+                              customerEmail: reservation.customer?.email || user?.email || '',
                               reservationDate: formatDate(reservation.reservation_date),
                               reservationTime: formatTime(reservation.reservation_time),
                               numberOfGuests: reservation.number_of_guests,

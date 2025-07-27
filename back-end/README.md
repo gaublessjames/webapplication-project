@@ -1,349 +1,202 @@
 # Café Fausse Backend API
 
-A Flask-based REST API backend for the Café Fausse restaurant website. This backend handles table reservations, newsletter subscriptions, menu management, testimonials, and restaurant information.
+A modular Flask REST API backend for the Café Fausse restaurant application. Handles reservations, menu, testimonials, gallery, newsletter, awards, and more.
 
-## Features
+---
 
-- **Table Reservations**: Complete reservation system with availability checking
-- **Newsletter Management**: Subscribe/unsubscribe functionality
-- **Menu Management**: Categories and items with dietary information
-- **Testimonials**: Customer reviews and ratings
-- **Restaurant Information**: Contact details, hours, and social media
-- **Awards**: Restaurant accolades and recognition
-- **Data Validation**: Comprehensive input validation using Marshmallow
-- **PostgreSQL Database**: Robust data persistence
-- **CORS Support**: Cross-origin resource sharing enabled
+## 🚦 Quick Start: Backend Setup Options
 
-## Tech Stack
+| Setup Method | Guide |
+|--------------|-------|
+| **Docker**   | [DOCKER_README.md](../DOCKER_README.md) |
+| **Manual**   | See below |
 
-- **Framework**: Flask 3.0.0
-- **Database**: PostgreSQL with SQLAlchemy ORM
-- **Validation**: Marshmallow schemas
-- **Migration**: Flask-Migrate
-- **CORS**: Flask-CORS
+> **Note:** Both methods deliver the **same demo data, endpoints, and experience**. Choose whichever fits your workflow.
 
-## Project Structure
+---
+
+## 🏗️ Backend Structure (Modular)
 
 ```
-cafe-fausse-backend/
-├── app.py                 # Main Flask application
-├── models.py             # Database models
-├── routes.py             # API endpoints
-├── schemas.py            # Request/response validation
-├── database.py           # Database initialization
-├── requirements.txt      # Python dependencies
-├── env.example           # Environment variables template
-└── README.md            # This file
+back-end/
+├── app/                # Modular Flask app (models, routes, schemas, etc.)
+├── run.py              # Main entrypoint (use this to run the API)
+├── requirements.txt    # Python dependencies
+├── env.example         # Environment variable template
+├── init_database.py    # Creates tables and seeds demo data
+├── seed_only.py        # Seeds demo data only
+├── test_seeding.py     # Verifies data seeding
+├── README.md           # This file
 ```
 
-## Setup Instructions
+---
+
+## 🖥️ Manual Backend Setup (No Docker)
 
 ### Prerequisites
+- **Python 3.8+** and pip
+- **PostgreSQL**
+- **Git**
 
-- Python 3.8+
-- PostgreSQL database
-- pip (Python package manager)
+### 1. Configure Environment
+```bash
+cp env.example .env
+# Edit .env with your PostgreSQL credentials
+```
 
-### Installation
+### 2. Set Up the Database
+- Create a PostgreSQL database (e.g., `cafe_fausse`).
+- Update `DATABASE_URL` in `.env`.
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd cafe-fausse-backend
-   ```
+### 3. Install Dependencies
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-2. **Create virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+### 4. Initialize Database with Demo Data
+```bash
+python init_database.py  # Creates tables and seeds demo data
+# Or, to only seed data (if tables already exist):
+python seed_only.py
+```
 
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 5. Run the Backend API
+```bash
+python run.py
+# API available at http://localhost:5000
+```
 
-4. **Set up environment variables**
-   ```bash
-   cp env.example .env
-   # Edit .env with your configuration
-   ```
+---
 
-5. **Configure PostgreSQL database**
-   - Create a new database: `cafe_fausse`
-   - Update `DATABASE_URL` in `.env` file
+## 🐳 Docker Backend Setup
+See [DOCKER_README.md](../DOCKER_README.md) for full instructions.
+- Docker Compose will run the backend using the same modular structure and entrypoint as above.
+- Demo data is seeded automatically on first run.
 
-6. **Initialize database**
-   ```bash
-   python database.py
-   ```
+---
 
-7. **Run the application**
-   ```bash
-   python app.py
-   ```
+## 🔑 Demo Login Credentials
+- **Demo User:** `demo@cafefausse.com` / `demo123456`
+- **Admin User:** `admin@cafefausse.com` / `demo123456`
+- **Chef User:** `chef@cafefausse.com` / `demo123456`
 
-The API will be available at `http://localhost:5000`
+---
 
-## API Endpoints
+## 🔗 API Endpoints (Sample)
+- `GET /health` — API health check
+- `POST /api/reservations` — Create reservation
+- `GET /api/menu/categories` — Get menu
+- `GET /api/testimonials` — Get testimonials
+- `GET /api/gallery/images` — Get gallery images
+- `POST /api/auth/login` — Login
+
+See below for more endpoints and usage examples.
+
+---
+
+## 📚 Full API Reference & Usage Examples
 
 ### Health Check
-- `GET /health` - API health status
+- `GET /health` — API health status
 
 ### Reservations
-- `POST /api/reservations` - Create a new reservation
-- `GET /api/reservations` - Get all reservations (admin)
-- `GET /api/reservations/<id>` - Get specific reservation
-- `PUT /api/reservations/<id>` - Update reservation status
-- `GET /api/reservations/availability` - Check availability
+- `POST /api/reservations` — Create a new reservation
+- `GET /api/reservations` — Get all reservations (admin)
+- `GET /api/reservations/<id>` — Get specific reservation
+- `PUT /api/reservations/<id>` — Update reservation status
+- `GET /api/reservations/availability` — Check availability
 
 ### Newsletter
-- `POST /api/newsletter/subscribe` - Subscribe to newsletter
-- `POST /api/newsletter/unsubscribe` - Unsubscribe from newsletter
+- `POST /api/newsletter/subscribe` — Subscribe to newsletter
+- `POST /api/newsletter/unsubscribe` — Unsubscribe from newsletter
 
 ### Menu
-- `GET /api/menu/categories` - Get all menu categories with items
-- `POST /api/menu/categories` - Create menu category (admin)
-- `POST /api/menu/items` - Create menu item (admin)
+- `GET /api/menu/categories` — Get all menu categories with items
+- `POST /api/menu/categories` — Create menu category (admin)
+- `POST /api/menu/items` — Create menu item (admin)
 
 ### Testimonials
-- `GET /api/testimonials` - Get approved testimonials
-- `POST /api/testimonials` - Submit new testimonial
+- `GET /api/testimonials` — Get approved testimonials
+- `POST /api/testimonials` — Submit new testimonial
 
 ### Restaurant Information
-- `GET /api/restaurant/info` - Get restaurant information
-- `PUT /api/restaurant/info` - Update restaurant info (admin)
+- `GET /api/restaurant/info` — Get restaurant information
+- `PUT /api/restaurant/info` — Update restaurant info (admin)
 
 ### Awards
-- `GET /api/awards` - Get all awards
-- `POST /api/awards` - Create new award (admin)
+- `GET /api/awards` — Get all awards
+- `POST /api/awards` — Create new award (admin)
 
-### Authentication (Local API Mode)
-- `POST /api/auth/register` - Register a new user (email, password, full_name)
-- `POST /api/auth/login` - Login with email and password
-- `GET /api/auth/user` - Get current user info (requires Authorization: Bearer <token>)
+### Authentication
+- `POST /api/auth/register` — Register a new user
+- `POST /api/auth/login` — Login
+- `GET /api/auth/user` — Get current user info (requires Authorization: Bearer <token>)
 
 ### Customers
-- `POST /api/customers` - Create a new customer
-- `GET /api/customers?email=...` - Get customer by email
-- `PATCH /api/customers/<id>` - Update customer
-- `POST /api/customers/upsert` - Upsert customer (for newsletter signup)
+- `POST /api/customers` — Create a new customer
+- `GET /api/customers?email=...` — Get customer by email
+- `PATCH /api/customers/<id>` — Update customer
+- `POST /api/customers/upsert` — Upsert customer (for newsletter signup)
 
 ### Profiles
-- `POST /api/profiles` - Create a new profile
-- `GET /api/profiles?user_id=...` - Get profile by user ID
-- `PATCH /api/profiles/<id>` - Update profile
+- `POST /api/profiles` — Create a new profile
+- `GET /api/profiles?user_id=...` — Get profile by user ID
+- `PATCH /api/profiles/<id>` — Update profile
 
-## API Usage Examples
+### Gallery
+- `GET /api/gallery/images` — Get all gallery images
+- `POST /api/gallery/images` — Add a new gallery image (admin)
 
-### Create a Reservation
-```bash
-curl -X POST http://localhost:5000/api/reservations \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Doe",
-    "email": "john@example.com",
-    "phone": "(555) 123-4567",
-    "date": "2024-02-15",
-    "time": "19:00",
-    "party_size": 4,
-    "special_requests": "Window seat preferred"
-  }'
-```
+---
 
-### Subscribe to Newsletter
-```bash
-curl -X POST http://localhost:5000/api/newsletter/subscribe \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "john@example.com",
-    "name": "John Doe"
-  }'
-```
+## 🛠️ Troubleshooting & FAQ
 
-### Get Menu Categories
-```bash
-curl http://localhost:5000/api/menu/categories
-```
+### Common Issues
+- **Database connection error:**
+  - Check `DATABASE_URL` in `.env` and ensure PostgreSQL is running.
+- **Port conflicts:**
+  - Use `lsof -i :5000` to find and stop conflicting processes.
+- **Missing dependencies:**
+  - Run `pip install -r requirements.txt`.
+- **Demo data not present:**
+  - Run `python init_database.py` (manual) or `docker-compose exec backend python init_database.py` (Docker).
 
-### Check Reservation Availability
-```bash
-curl "http://localhost:5000/api/reservations/availability?date=2024-02-15&time=19:00"
-```
+### FAQ
+- **Q: Is the manual backend setup identical to Docker?**
+  - **A:** Yes! Both methods deliver the same demo data, endpoints, and experience.
+- **Q: How do I reset demo data?**
+  - **A:** Run `python init_database.py` (manual) or `docker-compose exec backend python init_database.py` (Docker).
+- **Q: Where are the admin features?**
+  - **A:** Log in as `admin@cafefausse.com` to access admin endpoints.
+- **Q: How do I test data seeding?**
+  - **A:** Run `python test_seeding.py` (manual) or `docker-compose exec backend python test_seeding.py` (Docker).
 
-### Example: Register a User
-```bash
-curl -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user1@example.com",
-    "password": "password123",
-    "full_name": "User One"
-  }'
-```
+---
 
-### Example: Login
-```bash
-curl -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user1@example.com",
-    "password": "password123"
-  }'
-```
+## 🗺️ Documentation Map
+- **[../README.md](../README.md):** Main project overview & setup
+- **[../DOCKER_README.md](../DOCKER_README.md):** Docker setup
+- **[DATABASE_SEEDING_GUIDE.md](../DATABASE_SEEDING_GUIDE.md):** Data seeding details
 
-### Example: Get Current User
-```bash
-curl -X GET http://localhost:5000/api/auth/user \
-  -H "Authorization: Bearer <token>"
-```
+---
 
-### Example: Upsert Customer (Newsletter Signup)
-```bash
-curl -X POST http://localhost:5000/api/customers/upsert \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "newsletter@example.com",
-    "name": "Newsletter User",
-    "newsletter_signup": true
-  }'
-```
-
-### Example: Create Profile
-```bash
-curl -X POST http://localhost:5000/api/profiles \
-  -H "Content-Type: application/json" \
-  -d '{
-    "user_id": "<user_id>",
-    "full_name": "User Name",
-    "phone": "1234567890",
-    "role": "user"
-  }'
-```
-
-## Database Schema
-
-### Tables
-- **reservations**: Table reservations with status tracking
-- **newsletter_subscribers**: Email subscriptions
-- **menu_categories**: Menu sections (Appetizers, Main Courses, etc.)
-- **menu_items**: Individual menu items with dietary info
-- **testimonials**: Customer reviews and ratings
-- **restaurant_info**: Restaurant details and hours
-- **awards**: Restaurant accolades and recognition
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `FLASK_ENV` | Flask environment | `development` |
-| `SECRET_KEY` | Flask secret key | `dev-secret-key` |
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://localhost/cafe_fausse` |
-| `DEBUG` | Enable debug mode | `True` |
-
-## Development
-
-### Running in Development
-```bash
-export FLASK_ENV=development
-python app.py
-```
-
-### Database Migrations
-
-This project uses Alembic (via Flask-Migrate) for database migrations. To ensure your database schema is up to date, always run the following commands after cloning or pulling the project:
-
-1. **Activate your virtual environment:**
-   ```bash
-   source venv/bin/activate
-   ```
-
-2. **Apply all migrations (creates all tables/columns):**
-   ```bash
-   flask db upgrade
-   ```
-
-If you make changes to the models (e.g., add a new table or column), create a new migration:
-
-3. **Create a new migration after model changes:**
-   ```bash
-   flask db revision -m "describe your change"
-   # Edit the generated migration file as needed
-   flask db upgrade
-   ```
-
-If you ever get errors about missing tables or columns, re-run the above migration commands to ensure your database is in sync with the models.
-
-### Testing
-```bash
-# Run with pytest (when tests are added)
-pytest
-```
-
-## Production Deployment
-
-### Using Gunicorn
-```bash
-gunicorn -w 4 -b 0.0.0.0:5000 app:create_app()
-```
-
-### Environment Setup
-- Set `FLASK_ENV=production`
-- Use strong `SECRET_KEY`
-- Configure production `DATABASE_URL`
-- Set `DEBUG=False`
-
-## Error Handling
-
-The API returns consistent error responses:
-
-```json
-{
-  "error": "Error message",
-  "details": "Additional error details (if applicable)"
-}
-```
-
-Common HTTP status codes:
-- `200`: Success
-- `201`: Created
-- `400`: Bad Request (validation errors)
-- `404`: Not Found
-- `409`: Conflict (duplicate data)
-- `500`: Internal Server Error
-
-## Contributing
-
+## 🤝 Contributing
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
 
-## License
+---
 
-This project is licensed under the MIT License.
+## 📄 License
+MIT License
 
-## Support
+---
 
-For support or questions, please contact the development team or create an issue in the repository. 
-
-## Local Development: Demo Credentials & Migrations
-
-1. **Run database migrations:**
-   ```sh
-   flask db upgrade
-   ```
-
-2. **Start your Flask app:**
-   ```sh
-   flask run
-   ```
-
-3. **Demo users will be created automatically on first request:**
-   - Customer: `demo@cafefausse.com` / `demo123456`
-   - Admin: `admin@cafefausse.com` / `demo123456`
-
-4. **Log in with these credentials on the frontend.**
-
-If you ever reset your database, just repeat the above steps. 
+## 🆘 Support
+- Review the docs above
+- Check troubleshooting/FAQ
+- Create an issue in the repository 

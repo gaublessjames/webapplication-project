@@ -21,3 +21,4 @@ createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </StrictMode>,
 )
+console.log("Environment check:", import.meta.env.VITE_LOCAL_API_URL);

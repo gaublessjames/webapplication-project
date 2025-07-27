@@ -1,9 +1,12 @@
 import React from "react";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import ReservationForm from "@/components/ReservationForm";
-import { Calendar, Clock, Users, Phone, CheckCircle, Star } from "lucide-react";
+import Footer from "@/components/layout/Footer";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { Calendar, Clock, Users, Phone, CheckCircle, Star, MapPin, Mail, Award, Heart } from "lucide-react";
 import restaurantHero from "@/assets/restaurant-hero.jpg";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ReservationForm from "@/components/ReservationForm";
 
 const Reservations = () => {
   return (
@@ -23,7 +26,7 @@ const Reservations = () => {
               Reserve Your Table
             </h1>
             <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              Experience exceptional dining at Café Fausse. Book your perfect evening with us.
+              Experience exceptional French cuisine at Café Fausse. Book your perfect evening in our elegant, intimate atmosphere.
             </p>
           </div>
         </div>
@@ -36,72 +39,114 @@ const Reservations = () => {
             
             {/* Reservation Form */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-lg p-8">
-                <ReservationForm />
-              </div>
+              <Card className="shadow-lg">
+                <CardContent className="p-8">
+                  <ReservationForm />
+                </CardContent>
+              </Card>
             </div>
 
             {/* Sidebar Info */}
             <div className="space-y-6">
               
               {/* Hours */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center mb-4">
-                  <Clock className="w-6 h-6 text-primary-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-gray-900">Hours</h3>
-                </div>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex justify-between">
-                    <span>Monday - Thursday</span>
-                    <span>5:00 PM - 10:00 PM</span>
+              <Card className="shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center">
+                    <Clock className="w-6 h-6 text-primary-600 mr-3" />
+                    <CardTitle className="text-lg">Hours</CardTitle>
                   </div>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm text-gray-600">
                   <div className="flex justify-between">
-                    <span>Friday - Saturday</span>
+                    <span>Monday - Saturday</span>
                     <span>5:00 PM - 11:00 PM</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Sunday</span>
                     <span>5:00 PM - 9:00 PM</span>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
               {/* Contact */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center mb-4">
-                  <Phone className="w-6 h-6 text-primary-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-gray-900">Contact</h3>
-                </div>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p>(202) 555-4567</p>
-                  <p>For special requests or parties of 12+</p>
+              <Card className="shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center">
+                    <Phone className="w-6 h-6 text-primary-600 mr-3" />
+                    <CardTitle className="text-lg">Contact</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <Phone className="w-4 h-4 mr-2" />
+                    <span>(555) 123-4567</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Mail className="w-4 h-4 mr-2" />
+                    <span>info@cafefausse.com</span>
+                  </div>
+                  <div className="flex items-center">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    <span>123 Gourmet Avenue, Culinary District</span>
+                  </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    Available during business hours
+                    For special requests or parties of 8+ guests
                   </p>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
               {/* Policies */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center mb-4">
-                  <CheckCircle className="w-6 h-6 text-primary-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-gray-900">Policies</h3>
-                </div>
-                <div className="space-y-3 text-sm text-gray-600">
+              <Card className="shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center">
+                    <CheckCircle className="w-6 h-6 text-primary-600 mr-3" />
+                    <CardTitle className="text-lg">Reservation Policies</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-gray-600">
                   <div className="flex items-start">
                     <Star className="w-4 h-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Advance booking recommended</span>
+                    <span>Advance booking recommended for weekends</span>
                   </div>
                   <div className="flex items-start">
                     <Users className="w-4 h-4 text-primary-500 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Up to 12 guests per reservation</span>
+                    <span>Maximum 8 guests per reservation</span>
                   </div>
                   <div className="flex items-start">
                     <Clock className="w-4 h-4 text-primary-500 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>24-hour cancellation policy</span>
+                    <span>24-hour cancellation notice required</span>
                   </div>
-                </div>
-              </div>
+                  <div className="flex items-start">
+                    <Heart className="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Special dietary requests accommodated</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* About Café Fausse */}
+              <Card className="shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center">
+                    <Award className="w-6 h-6 text-primary-600 mr-3" />
+                    <CardTitle className="text-lg">About Café Fausse</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-gray-600">
+                  <p>
+                    Fine-dining establishment combining traditional French cuisine with modern culinary techniques. 
+                    Award-winning chefs create unforgettable dining experiences in an elegant, intimate atmosphere.
+                  </p>
+                  <div className="flex items-start">
+                    <Award className="w-4 h-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Multiple culinary excellence awards</span>
+                  </div>
+                  <div className="flex items-start">
+                    <Star className="w-4 h-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Founded in 2010 by Chef Marie Dubois</span>
+                  </div>
+                </CardContent>
+              </Card>
 
             </div>
           </div>

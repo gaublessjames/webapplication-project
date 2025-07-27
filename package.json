@@ -4,5 +4,8 @@
     "class-variance-authority": "^0.7.1",
     "lucide-react": "^0.525.0",
     "react": "^19.1.0"
+  },
+  "devDependencies": {
+    "vite": "^7.0.6"
   }
 }

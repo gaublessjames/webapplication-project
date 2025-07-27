@@ -1,10 +1,22 @@
 {
   "info": {
-    "_postman_id": "cafefausse-api-collection-001",
+    "_postman_id": "cafefausse-api-collection-002",
     "name": "Café Fausse API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Postman collection for Café Fausse backend API."
+    "description": "Updated Postman collection for Café Fausse backend API with automatic account activation and enhanced endpoints."
   },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5001",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
   "item": [
     {
       "name": "Health Check",
@@ -12,377 +24,599 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:5000/health",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
           "path": ["health"]
-        }
-      }
-    },
-    {
-      "name": "Create User",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"user1@example.com\",\n  \"full_name\": \"User One\",\n  \"phone\": \"1234567890\",\n  \"role\": \"user\"\n}"
         },
-        "url": {
-          "raw": "http://localhost:5000/api/users",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "users"]
-        }
+        "description": "Check if the API is running and database is connected"
       }
     },
     {
-      "name": "Get All Users (Admin)",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5000/api/users",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "users"]
-        }
-      }
-    },
-    {
-      "name": "Get User by ID",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5000/api/users/{{user_id}}",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "users", "{{user_id}}"]
-        }
-      }
-    },
-    {
-      "name": "Update User (Admin)",
-      "request": {
-        "method": "PUT",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"full_name\": \"Updated Name\",\n  \"role\": \"admin\"\n}"
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"full_name\": \"New User\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user with automatic account activation"
+          }
         },
-        "url": {
-          "raw": "http://localhost:5000/api/users/{{user_id}}",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "users", "{{user_id}}"]
-        }
-      }
-    },
-    {
-      "name": "Delete User (Admin)",
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5000/api/users/{{user_id}}",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "users", "{{user_id}}"]
-        }
-      }
-    },
-    {
-      "name": "Create Reservation",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"1234567890\",\n  \"date\": \"2025-08-01\",\n  \"time\": \"19:00:00\",\n  \"party_size\": 2,\n  \"special_requests\": \"Window seat\",\n  \"user_id\": \"{{user_id}}\"\n}"
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with email and password"
+          }
         },
-        "url": {
-          "raw": "http://localhost:5000/api/reservations",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "reservations"]
-        }
-      }
-    },
-    {
-      "name": "Get All Reservations (Admin)",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5000/api/reservations",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "reservations"]
-        }
-      }
-    },
-    {
-      "name": "Get Reservation by ID",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5000/api/reservations/{{reservation_id}}",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "reservations", "{{reservation_id}}"]
-        }
-      }
-    },
-    {
-      "name": "Update Reservation Status (Admin)",
-      "request": {
-        "method": "PUT",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"status\": \"confirmed\"\n}"
+        {
+          "name": "Login Demo User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@cafefausse.com\",\n  \"password\": \"demo123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with demo user credentials"
+          }
         },
-        "url": {
-          "raw": "http://localhost:5000/api/reservations/{{reservation_id}}",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "reservations", "{{reservation_id}}"]
-        }
-      }
-    },
-    {
-      "name": "Get Reservations for User",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5000/api/reservations/user/{{user_id}}",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "reservations", "user", "{{user_id}}"]
-        }
-      }
-    },
-    {
-      "name": "Check Reservation Availability",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5000/api/reservations/availability?date=2025-08-01&time=19:00",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "reservations", "availability"],
-          "query": [
-            {"key": "date", "value": "2025-08-01"},
-            {"key": "time", "value": "19:00"}
-          ]
-        }
-      }
-    },
-    {
-      "name": "Register (Auth)",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"user1@example.com\",\n  \"password\": \"password123\",\n  \"full_name\": \"User One\"\n}"
+        {
+          "name": "Login Admin User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@cafefausse.com\",\n  \"password\": \"demo123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with admin user credentials"
+          }
         },
-        "url": {
-          "raw": "http://localhost:5000/api/auth/register",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "auth", "register"]
-        }
-      }
-    },
-    {
-      "name": "Login (Auth)",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"user1@example.com\",\n  \"password\": \"password123\"\n}"
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "user"]
+            },
+            "description": "Get current user information (requires authentication)"
+          }
         },
-        "url": {
-          "raw": "http://localhost:5000/api/auth/login",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "auth", "login"]
+        {
+          "name": "Logout User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Logout and invalidate JWT token"
+          }
         }
-      }
+      ]
     },
     {
-      "name": "Login (Demo User)",
-      "request": {
-        "method": "POST",
-        "header": [
-          {"key": "Content-Type", "value": "application/json"}
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"demo@cafefausse.com\",\n  \"password\": \"demo123456\"\n}"
+      "name": "Testimonials",
+      "item": [
+        {
+          "name": "Get All Testimonials",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/testimonials/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "testimonials", ""]
+            },
+            "description": "Get all approved testimonials"
+          }
         },
-        "url": {
-          "raw": "http://localhost:5000/api/auth/login",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "auth", "login"]
-        }
-      }
-    },
-    {
-      "name": "Get Current User (Auth)",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Authorization", "value": "Bearer {{jwt}}"}],
-        "url": {
-          "raw": "http://localhost:5000/api/auth/user",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "auth", "user"]
-        }
-      }
-    },
-    {
-      "name": "Create Customer",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"customer@example.com\",\n  \"name\": \"Customer Name\",\n  \"phone\": \"1234567890\",\n  \"newsletter_signup\": false\n}"
+        {
+          "name": "Create Testimonial",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Amazing Experience!\",\n  \"rating\": 5,\n  \"comment\": \"The food was incredible and the service was outstanding. Highly recommended!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/testimonials/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "testimonials", ""]
+            },
+            "description": "Create a new testimonial (requires approval)"
+          }
         },
-        "url": {
-          "raw": "http://localhost:5000/api/customers",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "customers"]
+        {
+          "name": "Update Testimonial (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Title\",\n  \"rating\": 4,\n  \"comment\": \"Updated comment\",\n  \"is_approved\": true,\n  \"is_featured\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/testimonials/{{testimonial_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "testimonials", "{{testimonial_id}}"]
+            },
+            "description": "Update testimonial (admin only)"
+          }
         }
-      }
+      ]
     },
     {
-      "name": "Get Customer by Email",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5000/api/customers?email=customer@example.com",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "customers"],
-          "query": [{"key": "email", "value": "customer@example.com"}]
-        }
-      }
-    },
-    {
-      "name": "Update Customer",
-      "request": {
-        "method": "PATCH",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"phone\": \"9876543210\"\n}"
+      "name": "Reservations",
+      "item": [
+        {
+          "name": "Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"1234567890\",\n  \"date\": \"2025-08-01\",\n  \"time\": \"19:00\",\n  \"party_size\": 2,\n  \"special_requests\": \"Window seat please\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/reservations/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", ""]
+            },
+            "description": "Create a new reservation"
+          }
         },
-        "url": {
-          "raw": "http://localhost:5000/api/customers/{{customer_id}}",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "customers", "{{customer_id}}"]
-        }
-      }
-    },
-    {
-      "name": "Upsert Customer (Newsletter Signup)",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"newsletter@example.com\",\n  \"name\": \"Newsletter User\",\n  \"newsletter_signup\": true\n}"
+        {
+          "name": "Get All Reservations (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reservations/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", ""]
+            },
+            "description": "Get all reservations (admin only)"
+          }
         },
-        "url": {
-          "raw": "http://localhost:5000/api/customers/upsert",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "customers", "upsert"]
-        }
-      }
-    },
-    {
-      "name": "Create Profile",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"full_name\": \"User Name\",\n  \"phone\": \"1234567890\",\n  \"role\": \"user\"\n}"
+        {
+          "name": "Get Reservation by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reservations/{{reservation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", "{{reservation_id}}"]
+            },
+            "description": "Get reservation by ID"
+          }
         },
-        "url": {
-          "raw": "http://localhost:5000/api/profiles",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "profiles"]
-        }
-      }
-    },
-    {
-      "name": "Get Profile by User ID",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5000/api/profiles?user_id={{user_id}}",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "profiles"],
-          "query": [{"key": "user_id", "value": "{{user_id}}"}]
-        }
-      }
-    },
-    {
-      "name": "Update Profile",
-      "request": {
-        "method": "PATCH",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"phone\": \"9876543210\"\n}"
+        {
+          "name": "Update Reservation Status (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/reservations/{{reservation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", "{{reservation_id}}"]
+            },
+            "description": "Update reservation status (admin only)"
+          }
         },
-        "url": {
-          "raw": "http://localhost:5000/api/profiles/{{profile_id}}",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5000",
-          "path": ["api", "profiles", "{{profile_id}}"]
+        {
+          "name": "Get User Reservations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reservations/user/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", "user", ""]
+            },
+            "description": "Get reservations for authenticated user"
+          }
+        },
+        {
+          "name": "Check Availability",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reservations/availability?date=2025-08-01&time=19:00",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", "availability"],
+              "query": [
+                {"key": "date", "value": "2025-08-01"},
+                {"key": "time", "value": "19:00"}
+              ]
+            },
+            "description": "Check table availability for a specific date and time"
+          }
         }
-      }
+      ]
+    },
+    {
+      "name": "Menu",
+      "item": [
+        {
+          "name": "Get Menu Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/menu/categories/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "menu", "categories", ""]
+            },
+            "description": "Get all menu categories"
+          }
+        },
+        {
+          "name": "Get Menu Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/menu/items/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "menu", "items", ""]
+            },
+            "description": "Get all menu items"
+          }
+        },
+        {
+          "name": "Get Menu Items by Category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/menu/items/?category_id={{category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "menu", "items", ""],
+              "query": [{"key": "category_id", "value": "{{category_id}}"}]
+            },
+            "description": "Get menu items by category ID"
+          }
+        },
+        {
+          "name": "Create Menu Category (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Appetizers\",\n  \"description\": \"Start your meal with our delicious appetizers\",\n  \"icon\": \"🍽️\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/menu/categories/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "menu", "categories", ""]
+            },
+            "description": "Create a new menu category (admin only)"
+          }
+        },
+        {
+          "name": "Create Menu Item (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"French Onion Soup\",\n  \"description\": \"Classic French onion soup with melted cheese\",\n  \"price\": 12.99,\n  \"category_id\": \"{{category_id}}\",\n  \"is_available\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/menu/items/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "menu", "items", ""]
+            },
+            "description": "Create a new menu item (admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Awards",
+      "item": [
+        {
+          "name": "Get All Awards",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/awards/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "awards", ""]
+            },
+            "description": "Get all awards"
+          }
+        },
+        {
+          "name": "Create Award (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Best French Restaurant 2024\",\n  \"category\": \"Fine Dining\",\n  \"year\": 2024,\n  \"description\": \"Awarded for exceptional French cuisine\",\n  \"is_featured\": true,\n  \"display_order\": 1,\n  \"icon\": \"🏆\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/awards/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "awards", ""]
+            },
+            "description": "Create a new award (admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gallery",
+      "item": [
+        {
+          "name": "Get All Gallery Images",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/gallery/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "gallery", ""]
+            },
+            "description": "Get all gallery images"
+          }
+        },
+        {
+          "name": "Upload Gallery Image (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"}
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "image", "type": "file", "src": []},
+                {"key": "title", "value": "Restaurant Interior"},
+                {"key": "description", "value": "Beautiful interior of our restaurant"},
+                {"key": "category", "value": "interior"}
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/gallery/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "gallery", ""]
+            },
+            "description": "Upload a new gallery image (admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Newsletter",
+      "item": [
+        {
+          "name": "Subscribe to Newsletter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"subscriber@example.com\",\n  \"name\": \"Newsletter Subscriber\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/newsletter/subscribe",
+              "host": ["{{base_url}}"],
+              "path": ["api", "newsletter", "subscribe"]
+            },
+            "description": "Subscribe to newsletter"
+          }
+        },
+        {
+          "name": "Get All Subscribers (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/newsletter/subscribers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "newsletter", "subscribers"]
+            },
+            "description": "Get all newsletter subscribers (admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Restaurant Info",
+      "item": [
+        {
+          "name": "Get Restaurant Information",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/info",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "info"]
+            },
+            "description": "Get restaurant information"
+          }
+        },
+        {
+          "name": "Update Restaurant Info (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Café Fausse\",\n  \"address\": \"123 Main Street, City, State 12345\",\n  \"phone\": \"(555) 123-4567\",\n  \"email\": \"info@cafefausse.com\",\n  \"website\": \"https://cafefausse.com\",\n  \"hours\": \"Mon-Sat: 5:00 PM - 11:00 PM, Sun: 5:00 PM - 9:00 PM\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/info",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "info"]
+            },
+            "description": "Update restaurant information (admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "dashboard"]
+            },
+            "description": "Get admin dashboard statistics (admin only)"
+          }
+        },
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users"]
+            },
+            "description": "Get all users (admin only)"
+          }
+        }
+      ]
     }
   ]
 } 

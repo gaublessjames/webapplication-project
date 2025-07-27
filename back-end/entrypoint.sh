@@ -7,11 +7,9 @@ until pg_isready -h db -p 5432 -U cafe_fausse_user; do
   sleep 2
 done
 
-# Run migrations
-/venv/bin/flask db upgrade
-
-# Setup demo users and any initial data
-/venv/bin/python setup_database.py
+# Run robust database setup
+echo "Setting up database..."
+/venv/bin/python setup_database_robust.py
 
 # Start Gunicorn
 exec /venv/bin/gunicorn -w 4 -b 0.0.0.0:5000 "app:create_app()" 

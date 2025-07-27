@@ -1,10 +1,23 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Shield, Eye, Cookie, FileText } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { Header, Footer } from "@/components/layout";
 import policiesHero from "@/assets/policies-hero.jpg";
+import {
+  Shield,
+  Clock,
+  Users,
+  CreditCard,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Info
+} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Policies = () => {
   return (
@@ -42,24 +55,25 @@ const Policies = () => {
           <Tabs defaultValue="privacy" className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="privacy" className="flex items-center gap-2">
-                <Eye className="w-4 h-4" />
+                <Info className="w-4 h-4" />
                 Privacy Policy
               </TabsTrigger>
               <TabsTrigger value="terms" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
+                <AlertTriangle className="w-4 h-4" />
                 Terms of Service
               </TabsTrigger>
               <TabsTrigger value="cookies" className="flex items-center gap-2">
-                <Cookie className="w-4 h-4" />
+                <XCircle className="w-4 h-4" />
                 Cookie Policy
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="privacy" className="space-y-6">
-              <div className="bg-white rounded-xl shadow-sm border p-8">
-                <h2 className="text-2xl font-bold text-primary-600 mb-6">Privacy Policy</h2>
-                
-                <div className="prose prose-gray max-w-none space-y-6">
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-2xl text-primary-600">Privacy Policy</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Information We Collect</h3>
                     <p className="text-gray-600 leading-relaxed">
@@ -94,15 +108,16 @@ const Policies = () => {
                       unauthorized access, alteration, disclosure, or destruction.
                     </p>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="terms" className="space-y-6">
-              <div className="bg-white rounded-xl shadow-sm border p-8">
-                <h2 className="text-2xl font-bold text-primary-600 mb-6">Terms of Service</h2>
-                
-                <div className="prose prose-gray max-w-none space-y-6">
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-2xl text-primary-600">Terms of Service</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Reservation Policy</h3>
                     <ul className="list-disc list-inside text-gray-600 space-y-2">
@@ -136,15 +151,16 @@ const Policies = () => {
                       circumstances beyond our reasonable control.
                     </p>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="cookies" className="space-y-6">
-              <div className="bg-white rounded-xl shadow-sm border p-8">
-                <h2 className="text-2xl font-bold text-primary-600 mb-6">Cookie Policy</h2>
-                
-                <div className="prose prose-gray max-w-none space-y-6">
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-2xl text-primary-600">Cookie Policy</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">What Are Cookies?</h3>
                     <p className="text-gray-600 leading-relaxed">
@@ -179,8 +195,8 @@ const Policies = () => {
                       their own cookies. We do not control these cookies.
                     </p>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
