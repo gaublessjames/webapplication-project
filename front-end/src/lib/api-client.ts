@@ -1,5 +1,5 @@
 // API client configuration and utilities
-export const LOCAL_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+export const LOCAL_API_URL = import.meta.env.VITE_LOCAL_API_URL || 'http://localhost:5000';
 
 // Auth utilities
 export const auth = {
